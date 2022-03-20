@@ -1,0 +1,151 @@
+[tool.poetry]
+name = "biometric-checkin"
+version = "0.1.0"
+description = "Backend for the Biometric Check-in application"
+authors = ["mikolaj.swiatek@10clouds.com", "akononenko@truststamp.net"]
+
+[tool.poetry.dependencies]
+# Python
+python = "^3.6"
+
+
+django = "~2.2"
+requests = "^2"
+
+# Configuration
+django-environ = "~0.4"
+
+# Models
+django-model-utils = "~3.1"
+
+# Images
+
+# Password storage
+argon2-cffi = "~20.1.0"
+
+# Health Check
+django-health-check = "~3.10"
+
+# Python-PostgreSQL Database Adapter
+psycopg2-binary = "~2.8"
+
+# Unicode slugification
+awesome-slugify = "~1.6"
+
+# Time zones support
+pytz = "*"
+
+# Powerful and flexible toolkit for building Web APIs
+djangorestframework = "3.12.4"
+
+# Python implementation of Markdown for DRF
+Markdown = "~3.1"
+
+# API documentation
+prance = "~0.15"
+openapi-spec-validator = "~0.2"
+
+# Django storage in AWS S3
+# ------------------------------------------------------------------------------
+django-storages = "~1.7"  # https://github.com/jschneier/django-storages
+botocore = "1.12.152"
+boto3 = "1.9.152"
+
+# WSGI Handler
+gevent = "~1.3"
+gunicorn = "~19"
+
+# Health check memory and CPU usage
+psutil = "~5.6"
+
+# Your custom requirements go here
+django-cors-headers = "^3.0"
+djangorestframework-stubs = "^0.4.2"
+django-stubs = "^0.12.1"
+django-qr-code = "^1.0"
+drf-nested-routers = "^0.91.0"
+django-object-actions = "^1.1"
+sentry-sdk = "^0.10.2"
+django-rest-auth = "^0.9.5"
+googlemaps = "^4.2.0"
+django-push-notifications = {git = "https://github.com/jazzband/django-push-notifications.git", rev = "a021118c27fd0f7780164f0136801ac9d71b696e"}
+pySafetyNet-Attestation = "0.0.5"
+certvalidator = "^0.11.1"
+numpy = "1.19"
+pillow = "^8.3.1"
+
+[tool.poetry.dev-dependencies]
+
+# WSGI utility library for Python
+Werkzeug = "~0.15.3"
+
+# Collection of useful extensions
+django-extensions = "^2"
+
+# Wery useful toolbar for debuging project
+django-debug-toolbar = "^1"
+
+# Python debugger
+pudb = "2018.1"
+
+# Code coverage
+coverage = "^4"
+
+# create model fixture
+factory-boy = "^2"
+
+# best testing framework
+pytest = "^6"
+
+# pytest plugin produces coverage reports
+pytest-cov = "*"
+
+# testing django with pytest
+pytest-django = "*"
+
+# distributed testing and loop-on-failing modes
+pytest-xdist = "*"
+
+# changes the default look test results
+pytest-sugar = "*"
+
+# pytest plugin for faker
+pytest-faker = "*"
+
+# pytest plugin for mock module
+pytest-mock = "*"
+
+# pytest plugin for pudb
+pytest-pudb = "*"
+
+# pytest plugin for factoryboy
+pytest-factoryboy = "*"
+
+# Load env variables for pytest from .env files
+pytest-dotenv = "^0.4.0"
+
+# TODO: Remove when replace all test to pytest
+django-test-plus = "^1"
+
+# A plugin for coverage.py to measure Django template execution
+django-coverage-plugin = "^1"
+
+# very easy request mock
+requests-mock = "^1"
+
+# code audit tool
+isort = "~4.3"
+pylint-pytest="~1.1.2"
+pylint-django = "~2.0"
+pylint-celery = "~0.3"
+radon = "~2.4"
+
+# Black formatter
+black = "19.3b0"
+
+# Tavern end to end testing framework
+tavern = "~1.14.0"
+
+[build-system]
+requires = ["poetry>=1.0.0a3", "setuptools<58.5"]
+build-backend = "poetry.masonry.api"

@@ -1,0 +1,11 @@
+- get toml+txt filenames from the command line
+- read toml file to memory
+- extract chunks with dev and normal dependencies
+- remove version information
+- save comments
+- save deps in a hash
+- read txt
+- ignore comments
+- save dep name + version in a hash
+- zip deps from both files together
+- save deps that are in both files to a file: dep + "==" + ver + "#" + toml_comment

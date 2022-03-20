@@ -1,0 +1,219 @@
+apns2==0.7.2
+argon2-cffi==21.3.0
+argon2-cffi-bindings==21.2.0
+asgiref==3.5.0
+asn1crypto @ file:///home/cji/.cache/pypoetry/artifacts/aa/e9/0f/bf16b1b7bbccaaa630947942a56b7fb7efc7fe8ff6139c713ecab3153e/asn1crypto-1.5.0-py2.py3-none-any.whl
+astroid @ file:///home/cji/.cache/pypoetry/artifacts/58/b1/82/cd4583d1dba9af531c3c7b07184575f03588a89da34f51218f90bf284c/astroid-2.9.3-py3-none-any.whl
+asttokens==2.0.5
+async-generator==1.10
+attrs @ file:///home/cji/.cache/pypoetry/artifacts/c4/ee/75/fcd6c2f4c5a1d60b1bcd97014702ca01b3f032fd927d88780b38708409/attrs-21.4.0-py2.py3-none-any.whl
+autopep8==1.6.0
+awesome-slugify==1.6.5
+backcall==0.2.0
+black==22.1.0
+boto3 @ file:///home/cji/.cache/pypoetry/artifacts/e3/11/09/2d47eec7f1e09f0a304e957d0609eade9b937e351c66eb69bf876e9002/boto3-1.21.19-py3-none-any.whl
+botocore @ file:///home/cji/.cache/pypoetry/artifacts/1d/67/d4/e6fcbd17c50dddee51387f025316bd4af55d58f23043af465d85891a4e/botocore-1.24.19-py3-none-any.whl
+CacheControl==0.12.10
+cachy==0.3.0
+certifi @ file:///home/cji/.cache/pypoetry/artifacts/89/06/5b/e4bfdf1b8370bdc0a26198e81afa98f68c01a8b1b515c9108c6ad98d8a/certifi-2021.10.8-py2.py3-none-any.whl
+certvalidator==0.11.1
+cffi==1.15.0
+chardet==4.0.0
+charset-normalizer==2.0.12
+cleo==0.8.1
+click==8.0.4
+clikit==0.6.2
+colorama==0.4.4
+coreapi==2.3.3
+coreschema==0.0.4
+coverage==6.3.2
+crashtest==0.3.1
+cryptography==36.0.1
+dataclasses-json==0.5.6
+decorator==5.1.1
+Deprecated==1.2.13
+distlib==0.3.4
+Django==4.0.3
+django-cors-headers==3.11.0
+django-coverage-plugin==2.0.2
+django-debug-toolbar==3.2.4
+django-environ==0.8.1
+django-extensions==3.1.5
+django-health-check==3.16.5
+django-model-utils==4.2.0
+django-object-actions==3.1.0
+django-push-notifications==3.0.0
+django-qr-code==3.0.0
+django-rest-auth==0.9.5
+django-storages==1.12.3
+django-stubs==1.9.0
+django-stubs-ext==0.3.1
+django-test-plus==2.2.0
+djangorestframework==3.13.1
+djangorestframework-stubs==1.4.0
+docopt==0.6.2
+drf-nested-routers==0.93.4
+epc==0.0.5
+eradicate==2.0.0
+execnet==1.9.0
+executing==0.8.3
+factory-boy==3.2.1
+Faker @ file:///home/cji/.cache/pypoetry/artifacts/fe/70/6c/1d89f692ac872172725b53d4b7e3794e8191505be6297ee2c8aad5b86a/Faker-13.3.2-py3-none-any.whl
+filelock==3.6.0
+flake8==4.0.1
+future==0.18.2
+gevent==21.12.0
+googlemaps==4.6.0
+greenlet==1.1.2
+gunicorn==20.1.0
+h2==2.6.2
+hpack==3.0.0
+html5lib==1.1
+hyper==0.7.0
+hyperframe==3.2.0
+idna==3.3
+importlib-metadata==4.11.3
+inflection==0.5.1
+iniconfig @ file:///home/cji/.cache/pypoetry/artifacts/1d/67/0c/79706e7a41ef01be0b1a38aa3b4ddc9bd800a95ccd8d8dc7de4e090623/iniconfig-1.1.1-py2.py3-none-any.whl
+intervaltree==3.1.0
+ipdb==0.13.9
+ipython==8.1.1
+isort==5.10.1
+itypes==1.2.0
+jedi==0.18.1
+jediepcserver @ file:///home/cji/.emacs.d/straight/build/jedi-core
+jeepney==0.7.1
+Jinja2==3.0.3
+jmespath @ file:///home/cji/.cache/pypoetry/artifacts/ee/11/a5/b73b8f89e2ea8fa4ea39742b5aad203bcb083bfe47f96a6f096d560259/jmespath-0.10.0-py2.py3-none-any.whl
+jsonschema==4.4.0
+jwcrypto==1.0
+keyring==23.5.0
+lazy-object-proxy @ file:///home/cji/.cache/pypoetry/artifacts/ac/70/27/c837ba25a3c297751246bb334153b4f9d97cb7d4a032285f60bc252f13/lazy_object_proxy-1.7.1-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+libcst==0.4.1
+lockfile==0.12.2
+mando==0.6.4
+Markdown==3.3.6
+MarkupSafe==2.1.0
+marshmallow==3.14.1
+marshmallow-enum==1.5.1
+matplotlib-inline==0.1.3
+mccabe @ file:///home/cji/.cache/pypoetry/artifacts/a3/d3/68/f7f7115194f6fe8c487def3afa3b089a428f90650cf1b7be71afa83d12/mccabe-0.6.1-py2.py3-none-any.whl
+msgpack==1.0.3
+mypy @ file:///home/cji/.cache/pypoetry/artifacts/1e/d8/10/4fefd868f408b15d09f049cef4b5bc5288a1717169cada806847597d93/mypy-0.941-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl
+mypy-extensions @ file:///home/cji/.cache/pypoetry/artifacts/2f/c6/09/3e1afdcb75322c65b786e63cd7e879b6be3db36dea78ca376db5483ae4/mypy_extensions-0.4.3-py2.py3-none-any.whl
+nodeenv==1.6.0
+numpy @ file:///home/cji/.cache/pypoetry/artifacts/4b/8a/65/62efd2739e89cb4cc4ad53a6d214edd4e5163c33d2253a6663e0f40178/numpy-1.22.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+openapi-schema-validator==0.2.3
+openapi-spec-validator==0.4.0
+oscrypto==1.2.1
+packaging @ file:///home/cji/.cache/pypoetry/artifacts/d3/1f/90/3f2473250ebd055fe7f0856810677783949fc0d2e5f25bbb4dc00ad0a9/packaging-21.3-py3-none-any.whl
+paho-mqtt==1.5.1
+parso==0.8.3
+pastel==0.2.1
+pathspec==0.9.0
+pbr==5.8.1
+pep517==0.12.0
+pexpect==4.8.0
+pickleshare==0.7.5
+pip-tools==6.5.1
+pipdeptree==2.2.1
+pkginfo==1.8.2
+platformdirs==2.5.1
+pluggy @ file:///home/cji/.cache/pypoetry/artifacts/49/3e/55/309ec3705ba3309d817d531002c0a02f643d06c5d5a889ce43236130d5/pluggy-1.0.0-py2.py3-none-any.whl
+poetry==1.1.13
+poetry-core==1.0.8
+prance==0.21.8.0
+prompt-toolkit==3.0.28
+psutil==5.9.0
+psycopg2-binary==2.9.3
+ptyprocess==0.7.0
+pudb @ file:///home/cji/.cache/pypoetry/artifacts/24/1e/bd/ec1fb9c9f1eae32207a2fccc7df1e38050837b169e2d4b71da49fc0e56/pudb-2022.1.1.tar.gz
+pure-eval==0.2.2
+py @ file:///home/cji/.cache/pypoetry/artifacts/71/fb/64/bfdc833c2055a893883f33deaac35ef2cbdd95d58031cfc69a630f32bf/py-1.11.0-py2.py3-none-any.whl
+pycodestyle==2.8.0
+pycparser==2.21
+pydocstyle==6.1.1
+pyflakes==2.4.0
+Pygments==2.11.2
+pygraphviz==1.9
+PyJWT==1.7.1
+pykwalify==1.8.0
+pylev==1.4.0
+pylint==2.12.2
+pylint-celery==0.3
+pylint-django==2.5.2
+pylint-plugin-utils==0.7
+pylint-pytest==1.1.2
+pyOpenSSL==22.0.0
+pyparsing==3.0.7
+pyre-check==0.9.10
+pyre-extensions==0.0.27
+pyrsistent @ file:///home/cji/.cache/pypoetry/artifacts/e4/46/e4/d7f34760879df2de5aa77f1c1d8a48e1b6f20656bcf9ab557f35696487/pyrsistent-0.18.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+pySafetyNet-Attestation==0.0.5
+pytest==6.2.5
+pytest-cov==3.0.0
+pytest-django==4.5.2
+pytest-dotenv==0.5.2
+pytest-factoryboy==2.1.0
+pytest-faker==2.0.0
+pytest-forked==1.4.0
+pytest-mock==3.7.0
+pytest-pudb==0.7.0
+pytest-sugar==0.9.4
+pytest-xdist==2.5.0
+python-box==5.4.1
+python-dateutil @ file:///home/cji/.cache/pypoetry/artifacts/39/9b/3b/576da7c854551d780528d75132c98882925e44de0aecf8a31a4bea379c/python_dateutil-2.8.2-py2.py3-none-any.whl
+python-dotenv==0.19.2
+python-lsp-jsonrpc==1.0.0
+python-lsp-server==1.3.3
+pytz @ file:///home/cji/.cache/pypoetry/artifacts/a0/f8/66/b50e6d372fa21e4d6db4b2fe5c5e94aaf59b82d02a7b3215fbc4fae889/pytz-2021.3-py2.py3-none-any.whl
+PyYAML==5.4.1
+radon==5.1.0
+regex @ file:///home/cji/.cache/pypoetry/artifacts/4f/b1/3e/a66df8731c892de3bf5748b451c678935b5380d966c44c91b5e17df340/regex-2022.3.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+requests==2.27.1
+requests-mock==1.9.3
+requests-toolbelt==0.9.1
+rope==0.23.0
+ruamel.yaml==0.17.21
+ruamel.yaml.clib==0.2.6
+s3transfer==0.5.2
+SecretStorage==3.3.1
+segno==1.4.1
+semver==2.13.0
+sentry-sdk @ file:///home/cji/.cache/pypoetry/artifacts/71/ca/cd/487f71f2e6eab4dcbc59c189794a9da83a2056e683ad4d32192c813286/sentry_sdk-1.5.7-py2.py3-none-any.whl
+sexpdata==0.0.3
+shellingham==1.4.0
+six==1.16.0
+snowballstemmer==2.2.0
+sortedcontainers==2.4.0
+sqlparse @ file:///home/cji/.cache/pypoetry/artifacts/10/f5/22/c9c991a71e27c4d8f69907d92cce74a369cbb3183dc4a6d27e2ae4ab0b/sqlparse-0.4.2-py3-none-any.whl
+stack-data==0.2.0
+stevedore==3.5.0
+tabulate==0.8.9
+tavern==1.20.0
+termcolor==1.1.0
+TestSlide==2.7.0
+toml @ file:///home/cji/.cache/pypoetry/artifacts/51/ac/24/674da558495229c57c3d2333cb23e24aac7aadf723ced29e2cc41a9e6e/toml-0.10.2-py2.py3-none-any.whl
+tomli==2.0.1
+tomlkit==0.10.0
+traitlets==5.1.1
+typeguard==2.13.3
+types-pytz==2021.3.5
+types-PyYAML==6.0.4
+typing-inspect==0.7.1
+typing_extensions==4.1.1
+ujson==5.1.0
+Unidecode==0.4.21
+uritemplate==4.1.1
+urllib3==1.26.8
+urwid==2.1.2
+urwid-readline==0.13
+virtualenv==20.13.2
+wcwidth==0.2.5
+webencodings==0.5.1
+Werkzeug==2.0.3
+wrapt @ file:///home/cji/.cache/pypoetry/artifacts/17/98/7f/05b5588317b85d411985aa4b2f57c95ee90028e2e082fe7f1491a05085/wrapt-1.13.3-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl
+yapf==0.32.0
+zipp==3.7.0
+zope.event==4.5.0
+zope.interface==5.4.0
