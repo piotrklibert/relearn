@@ -1,20 +1,17 @@
 fs = require "fs"
 {
-  find-indices, pairs-to-obj, first, map, lines, filter, reject
+  find-indices, pairs-to-obj, first, map, lines, filter, reject, sort
 } = require "prelude-ls"
 
 readLines = fs.openSync >> fs.readFileSync(_, "utf8") >> lines
-split-on-eq = (.split /\=\=?/)
+split-on-eq = (.split /\=\=?| @ /)
 
 txt =
   readLines("script.txt")
   |> reject (.startsWith "\#")
   |> reject (== "")
 
-commit-versions =
-  txt |> filter ("@" in) |> map (.split "@") >> first >> (.trim!)
-
-versions = txt |> map split-on-eq |> reject first >> ("@" in) |> pairs-to-obj
+versions = txt |> map split-on-eq |> pairs-to-obj
 
 toml = readLines("script.toml") |> reject (== "") |> reject (.startsWith "\#")
 [_, n, m, e] = toml |> find-indices (/^\[.*\]/ ==)
@@ -28,19 +25,19 @@ dev-deps =
   toml-dev-deps
   |> filter (versions.)
   |> map (-> [it, versions[it]] )
-  |> pairs-to-obj
 
 deps =
   toml-deps
   |> filter (versions.)
   |> map (-> [it, versions[it]] )
-  |> pairs-to-obj
 
-for k, v of (deps <<< dev-deps)
-  console.log "#k==#v"
-console.log "\n"
-for k, v of (deps <<< dev-deps)
-  console.log "#k==#v"
+l = [(if v.startsWith("file") then k else "#k==#v") for [k, v] in dev-deps]
+for x in (sort l)
+  console.log(x)
+
+## console.log "\n"
+## for k, v of (deps <<< dev-deps)
+##   console.log "#k==#v"
 
 ## console.log versions
 ## console.log toml-dev-deps

@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "biometric-checkin"
+name = "some-project-name"
 version = "0.1.0"
-description = "Backend for the Biometric Check-in application"
-authors = ["mikolaj.swiatek@10clouds.com", "akononenko@truststamp.net"]
+description = "Some project description"
+authors = ["some@email.com"]
 
 [tool.poetry.dependencies]
 # Python

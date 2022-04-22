@@ -2,7 +2,7 @@
 
 Lines = list[str]
 
-pyproject = open("pyproject.toml").readlines()
+pyproject = open("script.toml").readlines()
 
 
 def clean(lines: Lines) -> Lines:
@@ -19,20 +19,25 @@ def show(lines: list[str]) -> None:
 pyproject_lines = rm_versions(clean(pyproject))
 deps_loc = pyproject_lines.index("[tool.poetry.dependencies]")
 devdeps_loc = pyproject_lines.index("[tool.poetry.dev-dependencies]")
+devdeps_end = pyproject_lines.index("[build-system]")
 
 deps = pyproject_lines[deps_loc + 1:devdeps_loc - 1]
-devdeps = pyproject_lines[devdeps_loc + 1:]
+devdeps = pyproject_lines[devdeps_loc + 1:devdeps_end]
 
 # show(deps)
 
-requirements = clean(open("requirements.txt").readlines())
+requirements = clean(open("script.txt").readlines())
 versions = {}
 
 for ver in requirements:
-    k, v = ver.split("==")
-    versions[k.lower()] = v
+    if "==" in ver:
+        k, v = ver.split("==")
+    elif "@" in ver:
+        k, _ = ver.split("@")
+        v = ""
+    versions[k.lower().strip()] = v.strip()
 
-for dep in devdeps:
+for dep in sorted(devdeps):
     ver = versions.get(dep.lower())
     if not ver:
         print(dep)
