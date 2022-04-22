@@ -2,24 +2,15 @@ use v6.d;
 
 unit module ShowTable;
 
-our sub pad-right(Str $s, Int $limit) {
+use Utils;
+
+
+our sub pad-right(Str $s, Int $limit --> Str) {
     given $limit - $s.chars {
         when * > 0 { $s ~ (" " x $_)                 }
         when * < 0 { $s.substr(0, $limit - 1) ~ "…"; }
         default    { $s                              }
     }
-}
-
-
-my @lorem-chars = [ |('a'..'z'), |('A'..'Z'), |('0'..'9') ];
-our sub lorem-word(Int $max = 9, Int $min = 3) {
-    my $span = $min .. $max;
-    @lorem-chars.roll($span.pick).join("")
-}
-
-
-our sub mk-table(Int $rows, Int $cols, Int $max = 9) {
-    do for ^$rows { (lorem-word($max) for ^$cols).Array }
 }
 
 
@@ -32,15 +23,54 @@ sub col-widths(@cols) {
 }
 
 
-our sub show-table(@table is copy, @widths?, $separator-width = 5) is export {
-    dd @table;
+sub pad-row-right($row, $cols, :$fill = "" --> List) {
+    PRE $row.elems <= $cols;
+    my @row = @$row;
+    given @row {
+        when .elems == $cols { @row }
+        default {
+            (|@row, |($fill for ^($cols - @row.elems)));
+        }
+    }
+}
+# my @row of Str = ["asd"];
+# @row = pad-row-right(@row, 5, fill => "xxx");
+# dd @row;
+# @row = pad-row-right(["asd"], 5);
+# dd @row;
+
+
+our sub to-table(@seq, Int :$cols = 5) is export {
+    my $t = @seq.batch($cols)».Array.Array;
+    $t[*-1] = pad-row-right($t[*-1], $cols).Array;
+    @$t
+}
+
+
+our sub mk-lorem-table(Int $rows, Int $cols, Int $max = 9) {
+    do for ^$rows { (Utils::lorem-word($max) for ^$cols).Array }
+}
+
+
+our sub show-table(@table is copy, $separator-width = 5, :$widths?) is export {
+    # length of each row has to be the same, otherwise [Z] won't work
+    PRE [==] @table».elems;
+
     my $fill = " " x $separator-width;
     my @cols = [Z] @table;
-    dd @cols;
-    @widths = @widths ?? @widths !! col-widths(@cols);
-    for @widths.kv -> $col, $max {
+    my $col-widths = do given $widths {
+        when .isa(Int) { ($widths xx @cols.elems).Array }
+        when .does(Iterable) { $widths }
+        default { col-widths(@cols) }
+    };
+    for $col-widths.kv -> $col, $max {
         @cols[$col].=map:{ pad-right($_, $max) };
     }
     @table = [Z] @cols;
     .join($fill).say for @table;
+}
+
+
+our sub show-list-in-table(@coll, :$cols = 6, :$chars) is export {
+    show-table(to-table(@coll, cols => $cols), widths => $chars);
 }
