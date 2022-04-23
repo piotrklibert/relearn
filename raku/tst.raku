@@ -1,31 +1,56 @@
 use v6.d;
 
 # use ShowTable;
-# constant base-file := "/home/cji/priv/klibert_pl/build/templates/base.html".IO;
-
-# my $lines = base-file.lines.grep: *.contains: 'cache_busting_cookie';
-my regex cookie-re { <?after 'cache_busting_cookie='>( \d+ ) }
-.say for $*IN.lines».subst(&cookie-re, { $0 + (1..9).pick });
-
-# .put for @$lines.grep(/cache/);
 
 sub show-section-sep () {
     print "\n" ~ "=" x 10 ~ "\n" x 2;
 }
 
-# subset A where Array[Int] | Array[Str];
+subset Indent of Int where { $_ %% 4 && $_ >= 0};
 
-# sub fun(A @arg where *.elems < 3) {
-#     say @arg.^name;
-#     say @arg.raku;
-# }
+my Indent $*indent  = 0;
 
-# fun Array[Int].new: [1,2];
+sub indent($s) { $s.indent($*indent) }
 
+# NOTE: you can't do: sub do-with-indent(Indent $i = 4, &block) - can't put
+# required positional argument after optional positional argument. But you can
+# easily have multiple signatures for the same method using multi:
+multi do-with-indent(&block) { samewith(4, &block); }
+multi do-with-indent(Indent $i, &block) {
+    temp $*indent += $i;
+    block();
+}
+
+multi sub walk(IO::Path $p where *.d) {
+    say indent($p);
+    do-with-indent { samewith($_) for $p.dir; }
+}
+multi sub walk(IO::Path $p where *.d.not) {
+    say indent $p;
+}
+
+walk "./raku/".IO;
+
+constant Ux = IO::Spec::Unix;
+
+sub join-paths($base, $other --> IO::Path) { "$base/$other".IO }
+
+sub list-dir($init where Str | IO::Path --> Seq) {
+    my IO::Path @subdirs = [$init.IO.absolute.IO];
+    gather while @subdirs {
+        my $cur = @subdirs.shift(); # say $cur;
+        my $seq := $cur.dir.cache;
+        my ($, $dirs, $files) =
+            take ($cur, $seq.grep(*.d)».basename, $seq.grep(*.d.not)».basename);
+        my &absolutize := { join-paths($cur, $_) }
+        @subdirs.prepend: $dirs».&absolutize;
+    }
+}
+
+
+
+my $s = lazy list-dir("./raku/".IO);
+.[0].say for $s[^5];
+show-section-sep;
+# .[0].say for $s[4..^8];
 # show-section-sep;
-
-# fun (Array[Str].new: <3 4>);
-
-# show-section-sep;
-
-# fun ([3, 4]);
