@@ -28,3 +28,30 @@ sub into-sections(@lst, $re) {
 
 # my %s = .{ .keys.grep: /'dependencies'/ }:kv with %sections;
 # say ~%s.keys == "([tool.poetry.dependencies] [tool.poetry.dev-dependencies])";
+
+# =========== augmenting and type coertion
+
+use MONKEY;
+
+class Fuck {
+    has $!p;
+
+    method new($p) {
+        self.bless(|%{p => $p})
+    }
+
+    submethod BUILD(*%h) {
+        say %h;
+        $!p = %h<p>;
+    }
+}
+
+augment class Any {
+    method Fuck() { Fuck.new: self.Str; }
+}
+
+"as3das".IO.Fuck.raku.say;
+
+sub f(Fuck() $f) {
+    say "fuck";
+}

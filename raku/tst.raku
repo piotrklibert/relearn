@@ -1,57 +1,36 @@
 use v6.d;
 
-# use ShowTable;
+use Terminal::ANSIColor;
 
-sub show-section-sep () {
-    print "\n" ~ "=" x 10 ~ "\n" x 2;
+use Test;
+use ShowTable;
+use Utils;
+use Meta;
+
+my $obj = PseudoStash;
+
+# show-section { ns($obj); }
+# show-section { cls($obj); }
+# show-section { meths($obj); }
+# show-section { doc($obj); }
+
+
+# special: <default reset inverse on_default>
+my @colors = < bold italic underline black red green yellow blue magenta cyan white >;
+my @backgrounds = < on_black on_red on_green on_yellow on_blue on_magenta on_cyan on_white >;
+
+sub maybe-colorize($s) { (0, 1).pick() ?? $s.color(@colors.pick()) !! $s }
+my $p = (&maybe-colorize o { lorem-word(15) } ... ∞)[^15];
+
+# show-section {
+
+#     show-table ShowTable::make-lorem-table(3, 3);
+# }
+
+show-section {
+    show-list-in-table(
+        :col-separator("."),
+        $p, :3cols,
+        :cell-padding("_")
+    );
 }
-
-subset Indent of Int where { $_ %% 4 && $_ >= 0};
-
-my Indent $*indent  = 0;
-
-sub indent($s) { $s.indent($*indent) }
-
-# NOTE: you can't do: sub do-with-indent(Indent $i = 4, &block) - can't put
-# required positional argument after optional positional argument. But you can
-# easily have multiple signatures for the same method using multi:
-multi do-with-indent(&block) { samewith(4, &block); }
-multi do-with-indent(Indent $i, &block) {
-    temp $*indent += $i;
-    block();
-}
-
-multi sub walk(IO::Path $p where *.d) {
-    say indent($p);
-    do-with-indent { samewith($_) for $p.dir; }
-}
-multi sub walk(IO::Path $p where *.d.not) {
-    say indent $p;
-}
-
-walk "./raku/".IO;
-
-constant Ux = IO::Spec::Unix;
-
-sub join-paths($base, $other --> IO::Path) { "$base/$other".IO }
-
-sub list-dir($init where Str | IO::Path --> Seq) {
-    my IO::Path @subdirs = [$init.IO.absolute.IO];
-    gather while @subdirs {
-        my $cur = @subdirs.shift(); # say $cur;
-        my $seq := $cur.dir.cache;
-        my ($, $dirs, $files) =
-            take ($cur, $seq.grep(*.d)».basename, $seq.grep(*.d.not)».basename);
-        my &absolutize := { join-paths($cur, $_) }
-        @subdirs.prepend: $dirs».&absolutize;
-    }
-}
-
-
-
-show-section-sep;
-my $s = lazy list-dir("./raku/".IO);
-.[0].say for $s[^5];
-show-section-sep;
-# .[0].say for $s[4..^8];
-# show-section-sep;

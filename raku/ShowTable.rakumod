@@ -3,74 +3,118 @@ use v6.d;
 unit module ShowTable;
 
 use Utils;
+use Colors :types;
 
 
-our sub pad-right(Str $s, Int $limit --> Str) {
-    given $limit - $s.chars {
-        when * > 0 { $s ~ (" " x $_)                 }
-        when * < 0 { $s.substr(0, $limit - 1) ~ "…"; }
-        default    { $s                              }
+our enum JustifyType < None Left Right Center >;
+
+subset StrOrColored where Str | Colored;
+
+subset StrList where { .cache.all ~~ StrOrColored };
+subset StrTable where { .cache.all ~~ StrList };
+
+subset ColSpec where Iterable | Int | Nil;
+
+# (True...∞)
+sub str-justify(StrOrColored $s, Int $limit, JustifyType $type, Str $pad = " ") {
+    my $diff := $limit - $s.chars;
+    given $type {
+        when Left  { $s ~ ($pad x $diff); }
+        when Right { ($pad x $diff) ~ $s; }
+        when * { warn 'Not implemented yet!'; $s }
     }
 }
 
 
-sub col-widths(@cols) {
-    my @widths = $ xx @cols.elems;
-    for 0 ..^ @widths.elems -> $c {
-        @widths[$c] = @cols[$c]».chars.max;
+#| Make sure the returned string has exactly $limit characters, clipping or
+#| padding as needed.
+our sub format-cell(
+    StrOrColored $text,
+    Int $cell-width,
+    JustifyType :$cell-justify-type = Left,
+    Str :$cell-padding = " ",
+    --> Str
+) {
+    do {
+        POST .no-color.chars == $cell-width; # NOTE: 11
+
+        my Int $char-num := $text.chars;
+        if $char-num > $cell-width {
+            $text.substr(0, $cell-width - 1) ~ "…";
+        }
+        elsif $char-num < $cell-width && ?$cell-justify-type {
+            str-justify($text, $cell-width, $cell-justify-type, $cell-padding);
+        }
+        else {
+            $text.Str;
+        }
     }
+}
+
+
+subset IntList of List where { .all ~~ Int };
+
+
+sub get-col-widths(@cols where { .all ~~ List  } --> IntList) is export {
+    POST .elems == @cols.elems;
+    my @widths = $ xx @cols.elems;
+    @widths[$_] = @cols[$_]».chars.max for @widths.keys;
     @widths
 }
 
 
-sub pad-row-right($row, $cols, :$fill = "" --> List) {
-    PRE $row.elems <= $cols;
-    my @row = @$row;
-    given @row {
-        when .elems == $cols { @row }
-        default {
-            (|@row, |($fill for ^($cols - @row.elems)));
-        }
-    }
-}
-# my @row of Str = ["asd"];
-# @row = pad-row-right(@row, 5, fill => "xxx");
-# dd @row;
-# @row = pad-row-right(["asd"], 5);
-# dd @row;
 
 
-our sub to-table(@seq, Int :$cols = 5) is export {
-    my $t = @seq.batch($cols)».Array.Array;
-    $t[*-1] = pad-row-right($t[*-1], $cols).Array;
-    @$t
-}
-
-
-our sub mk-lorem-table(Int $rows, Int $cols, Int $max = 9) {
-    do for ^$rows { (Utils::lorem-word($max) for ^$cols).Array }
-}
-
-
-our sub show-table(@table is copy, $separator-width = 5, :$widths?) is export {
+our sub show-table(
+    StrTable $table is copy,
+    Str :$col-separator = " ",
+    Int :$col-separator-width = 5,
+    ColSpec :w(:chars(:$col-width)) = Nil,
+    Str :$cell-padding = " ",
+    JustifyType :justify(:$cell-justify-type) = Left,
+) is export {
     # length of each row has to be the same, otherwise [Z] won't work
-    PRE [==] @table».elems;
+    PRE [==] $table».elems;
+    PRE $col-width ~~ Iterable ?? $col-width.elems == $table[0].elems !! True;
 
-    my $fill = " " x $separator-width;
+    my @table := $table.list;
+    my $fill = $col-separator x $col-separator-width;
     my @cols = [Z] @table;
-    my $col-widths = do given $widths {
-        when .isa(Int) { ($widths xx @cols.elems).Array }
-        when .does(Iterable) { $widths }
-        default { col-widths(@cols) }
-    };
+    my $col-widths = do given $col-width {
+        when Int      { $col-width xx @cols.elems }
+        when Iterable { $col-width }
+        default       { get-col-widths(@cols) }
+    }
     for $col-widths.kv -> $col, $max {
-        @cols[$col].=map:{ pad-right($_, $max) };
+        @cols[$col].=map:{ format-cell($_, $max, )  }
     }
     @table = [Z] @cols;
+    # for @table { .join($fill).comb.raku.say }
     .join($fill).say for @table;
 }
 
 
-our sub show-list-in-table(@coll, :$cols = 6, :$chars) is export {
-    show-table(to-table(@coll, cols => $cols), widths => $chars);
+sub pad-row(StrList $row, Int $cols, Str :$fill = "" --> List) {
+    PRE $row.elems <= $cols;
+    POST .elems == $cols;
+    return $row if .elems == $cols;
+    $row.append: $fill xx ($cols - $row.elems);
+}
+
+
+our sub to-table(StrList $seq, Int :$cols = 5 --> StrTable) is export {
+    my $table := $seq.batch($cols)».Array.Array;
+    $table.tail = pad-row($table.tail, $cols);
+    $table
+}
+
+
+our sub make-lorem-table(Int $rows, Int $cols, Int $max = 9 --> StrTable) {
+    to-table :$cols, (Utils::lorem-word($max) xx ($rows × $cols))
+}
+
+our sub show-list-in-table(
+    StrList $coll, :$cols = 6, :$row-padding = " ", *%kwargs
+) is export {
+    $coll ==> to-table(cols => $cols) ==> show-table(|%kwargs);
 }
