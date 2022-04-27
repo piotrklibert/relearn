@@ -30,28 +30,3 @@ multi sub walk(IO::Path $p where *.d.not) {
 }
 
 walk "./raku/".IO;
-
-constant Ux = IO::Spec::Unix;
-
-sub join-paths($base, $other --> IO::Path) { "$base/$other".IO }
-
-sub list-dir($init where Str | IO::Path --> Seq) {
-    my IO::Path @subdirs = [$init.IO.absolute.IO];
-    gather while @subdirs {
-        my $cur = @subdirs.shift(); # say $cur;
-        my $seq := $cur.dir.cache;
-        my ($, $dirs, $files) =
-            take ($cur, $seq.grep(*.d)».basename, $seq.grep(*.d.not)».basename);
-        my &absolutize := { join-paths($cur, $_) }
-        @subdirs.prepend: $dirs».&absolutize;
-    }
-}
-
-
-
-show-section-sep;
-my $s = lazy list-dir("./raku/".IO);
-.[0].say for $s[^5];
-show-section-sep;
-# .[0].say for $s[4..^8];
-# show-section-sep;
