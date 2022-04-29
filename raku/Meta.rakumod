@@ -76,8 +76,12 @@ our sub meths(Mu \obj) is export {
 }
 
 
-our sub doc($query) is export {
-    say qqx[ rakudoc '$query' ].lines[^10].join("\n");
+our sub doc($query, :l(:$lines) = 15) is export {
+    my $res = qqx[ rakudoc '$query' ];
+    if $res {
+        say $res.lines[^$lines].join("\n")
+    };
+    "";
 }
 
 

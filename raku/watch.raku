@@ -6,7 +6,11 @@ use Dirs;
 use ShowTable;
 
 my constant Change = IO::Notification::Change;
-
+# apparently, selective import is something that needs to be delegated to the
+# ecosystem. There are some modules available, but for the simple case of
+# shortening package-qualified names this construct suffices. BTW, the defaults
+# for the module system are really bad in Raku. Well, better than Ruby, but
+# still.
 
 sub re-run(Change $ch, Str $cmd) {
     say "{$ch.path} changed, running command:";
@@ -20,6 +24,7 @@ sub re-run(Change $ch, Str $cmd) {
     else            {  qqx[ noti -m "$elapsed" -t "ERROR" ]; }
 }
 
+
 sub get-files-to-watch(@paths where {.all ~~ IO::Path}) {
     gather for @paths -> $path {
         unless $path.d { take $path; next; }
@@ -29,11 +34,13 @@ sub get-files-to-watch(@paths where {.all ~~ IO::Path}) {
     }
 }
 
+my constant $base-re := /'/home/cji/projects/trusted-checkin/backend/checkin/'/;
+
 sub MAIN($run, *@args where {.elems > 0}) {
-    say "Watching: "; @args.map({"- $_".indent(4)})».say;
+    say "Base paths:"; @args.map({"- $_".indent(4)})».say;
     my @files = get-files-to-watch @args».IO;
-    @files = @files.grep(none /migrations/|/pycache/).grep(/'.py'$/).map(*.IO);
-    say "Watching: "; show-list-in-table :3cols, :45chars, @files.map(*.Str.subst(/'/home/cji/projects/trusted-checkin/backend/checkin/'/, './'));
+    @files = @files.grep(none /migrations/|/pycache/).grep(/'.py'$/|/'.raku'.*$/).map(*.IO);
+    say "Watching: "; show-list-in-table :3cols, :45chars, @files.map(*.Str.subst($base-re, './'));
     say +@files;
     loop {
         my $supply = @files».watch.reduce({ $^a.merge($^b) });
