@@ -71,6 +71,30 @@ sub str-justify(
     }
 }
 
+#| These two look too similar to be left alone without DRYing them. To abstract
+#| over the kind of a thing we're padding/justifying we need to take a bunch of
+#| functions/operators, namely: getting length of the thing, multiplying a
+#| thing, and concatenating the thing. It would be {.chars}, &infix:<~>,
+#| &infix:<x>, respectively, for strings
+sub list-justify(
+    Iterable $row,
+    Int $cols,
+    Str :$fill = "",
+    JustifyType :justify(:$type) = Left,
+    --> List
+) is export(:tests) {
+    PRE $row.elems <= $cols;
+    POST $_✔{ .elems == $cols };
+
+    return $row if .elems == $cols;
+    my $diff := $cols - $row.elems;
+    given $type {
+        when Left  { $row ⊕ ($fill xx $diff) }
+        when Right { ($fill xx $diff) ⊕ $row }
+        when * { warn "Type {$type} not implemented yet!"; $row }
+    }
+}
+
 
 #| Make sure the returned string has exactly $limit characters, clipping or
 #| padding as needed. If it grows any larger than this, we should probably
@@ -105,24 +129,6 @@ sub get-col-widths(@cols where { .all ~~ StrList  } --> IntList) is export(:test
 }
 
 
-sub list-justify(
-    Iterable $row,
-    Int $cols,
-    Str :$fill = "",
-    JustifyType :justify(:$type) = Left,
-    --> List
-) is export(:tests) {
-    PRE $row.elems <= $cols;
-    POST $_✔{ .elems == $cols };
-
-    return $row if .elems == $cols;
-    my $diff := $cols - $row.elems;
-    given $type {
-        when Left  { $row ⊕ ($fill xx $diff) }
-        when Right { ($fill xx $diff) ⊕ $row }
-        when * { warn "Type {$type} not implemented yet!"; $row }
-    }
-}
 
 
 our sub to-table(StrList $seq, Int :$cols = 5 --> StrTable) is export {
