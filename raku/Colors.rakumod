@@ -1,5 +1,6 @@
 use v6.d;
-use MONKEY;
+
+use MONKEY; # 🙈
 
 unit module Colors;
 

@@ -5,9 +5,7 @@ unit module Utils;
 sub show-section-sep() is export { print "\n" ~ "=" x 10 ~ "\n" x 2; }
 sub show-subsection-sep() is export { print "\n" ~ "-" x 10 ~ "\n\n"; }
 
-multi sub show-section($b, &block) {
-    samewith(&block) if $b;
-}
+multi sub show-section($enabled, &block) { samewith(&block) if $enabled; }
 multi sub show-section(&block) is export {
     show-section-sep;
     block();
@@ -43,6 +41,7 @@ multi sub infix:<✔>(Mu $x, &block) is export {
 }
 
 
+# https://github.com/ajs/perl6-Operator-Listcat/blob/master/lib/Operator/Listcat.pm6
 multi sub infix:<listcat>(@a, @b) is equiv(&infix:<~>) is export { |@a, |@b }
 multi sub infix:<⊕>(Iterable $a, Iterable $b) is looser(&infix:<xx>) is export {
     |$a, |$b

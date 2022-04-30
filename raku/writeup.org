@@ -1,0 +1,745 @@
+#+TITLE: Printing tables in terminal with Raku
+#+OPTIONS: inline:t
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-bigblow.setup
+#+HTML_HEAD: <style type="text/css"> pre { background-color: #232324 !important; color: white;  } .src-smalltalk, .src-text { color: white !important; } </style>
+
+* Foreword
+:PROPERTIES:
+:CUSTOM_ID: foreword
+:END:
+
+*** Time to learn something new
+:PROPERTIES:
+:CUSTOM_ID: time-to-learn-something-new
+:END:
+
+It's been quite a long time since I last learned a new programming language that
+was even a bit interesting. I learned [[https://www.lua.org/][Lua]], [[https://moonscript.org/][MoonScript]], and then [[https://haxe.org/][Haxe]] to script
+my window manager, then came back to [[https://www.gnu.org/software/smalltalk/][Smalltalk]] trying to create a shell in it,
+and more recently I learned [[https://www.rust-lang.org/][Rust]] for [[https://webassembly.org/][WebAssembly]] development. It's been more
+than 3 months since then, so it's time to move on again!
+
+This time I wanted a language that I could use for quick, often one-off, scripts
+for command line. Instead of a traditional mixture of =sed=, =AWK=, =BASH=, and
+=Python=, I wanted one language that could perform all their functions in a
+day-to-day scripting.
+
+One of the most important requirements for that language was that I don't know
+it yet (I could compromise on that only if there were no such candidates). Other
+than that, I wanted something *succint* and *expressive*, supporting creation of
+*internal DSLs*. Finally, I wanted a language with features helpful in assuring
+*correctness* of programs written in it.
+
+*** Eliminations
+:PROPERTIES:
+:CUSTOM_ID: eliminations
+:END:
+
+After preliminary investigation and some research, out of [[https://klibert.pl/timeline.png][quite a few]] languages
+that I know, plus some more that [[https://redmonk.com/dberkholz/2013/03/25/programming-languages-ranked-by-expressiveness/][came up]] when researching[fn:1] the topic, only
+a few languages remained. These were:
+
+- [[http://www.rebol.net/][REBOL]] or [[https://www.red-lang.org/][Red]]
+- [[https://clojure.org/][Clojure]], or rather [[https://clojurescript.org/][ClojureScript]] on Node.js
+- [[https://livescript.net/][LiveScript]][fn:2] on Node.js 
+- [[https://racket-lang.org/][Racket]] on Chez Scheme
+- [[https://www.gnu.org/software/emacs/manual/html_mono/elisp.html][Emacs Lisp]] with ~emacs --batch~
+- [[https://www.scala-lang.org/][Scala]] on JVM
+- [[https://raku.org/][Raku]] on [[https://moarvm.com/][MoarVM]]
+
+Out of these, the only ones that I don't know at all were REBOL, Red, and Raku.
+
+It's hard to say how actively developed REBOL is, and I don't quite trust its
+development model. Red is an interesting proposition, but it's immature, and I
+don't quite agree with the team's priorities. Raku seemed more actively
+developed than REBOL and more mature than Red.
+
+*TL;DR*: only *Raku* was left standing, with corpses of other contenders piled
+up in a corner. Playing with *Raku* will be fun, will be fun, will be fun... for
+a while.
+
+# (I excluded some extreme cases, like Haskell, J, or FORTH)
+
+# All worth considering, but most have things that made me pass on them. For
+# example, I don't 100% trust the REBOL model of development, and Red is still a
+# decade before half if its promises materialize. I know Scala already, but it's
+# in a dangerous period right now - a Python-like phase-transition from 2.x to
+# 3.x - and I'd rather wait that one out. Clojure on its own is a hard pass,
+# because of the startup time. But ClojureScript runs on Node - worth considering,
+# but I already know Clojure, so maybe another day. Racket is always, always in my
+# heart[fn:4], but I've been playing with too many Lisps as of late anyway.
+
+# LiveScript has a lot of syntactic sugar that's similar to Raku, Perl, and
+# Haskell, plus it has access to NPM. Similarly, Emacs Lisp is surprisingly an
+# extremely capable language - incredible amount of work went into both the
+# implementation, stdlib, and libraries - there's more Elisp packages than Raku
+# packages in their respective package repositiories. But, I know both Elisp and
+# LS, use then constantly, which would make the whole thing much less interesting.
+
+*** So what's up with this article?
+:PROPERTIES:
+:CUSTOM_ID: so-what's-up-with-this-article
+:END:
+
+Well, I decided to document my learning of Raku somehow. I thought of a simple
+project that should be immediately understood by anyone, and started
+implementing it in Raku, reading lots of docs in the process. 
+
+Normally, the effect of this would be a some code in a module on my disk and
+nothing else. But I thought that, with a bit of a commentary, that code could be
+of help to others wanting to learn Raku. I decided to turn the module into a
+Literate Programming[fn:5] document.
+
+*Warning:* all of this is written purely *for science* (and fun)! The code is
+not intended to be /idiomatic/, /fast/, or /fit for any purpose/ other than the
+one expressly stated, that is: to highlight interesting linguistic features I
+found in Raku.
+
+*** So what are we going to build?
+:PROPERTIES:
+:CUSTOM_ID: so-what-are-we-going-to-build
+:END:
+
+It's very simple. Problem statement:
+
+#+begin_quote
+Write a function that will take a list of strings and will print the words in an
+aligned table in the terminal. Make sure colored table elements are also
+displayed properly.
+#+end_quote
+
+That's it. Here's the end result (the characters used to pad cells and columns
+are obviously configurable): 
+
+#+HTML: <img src="./img/end-result.png" width="60%" />
+
+Some side-goals:
+
+- showcase the *contracts-based* programming style in the vein of Racket, in
+  Raku
+- make an example of something useful that uses the module functionality
+
+If you're curious about the examples, the two I have in mind are:
+
+- REPL introspection/ease of use improvement; and
+- standard, tabular JSON data printing 
+
+That's it for introduction, let's move over to the code.
+
+
+* Code
+:PROPERTIES:
+:CUSTOM_ID: code
+:END:
+
+Let's start writing the module. Raku source code is kept in files with =.raku=
+and =.rakumod= extensions; the former meant for scripts, the latter for... well,
+modules. We'll be creating a bunch of modules and one script:
+
+- =run.raku= - imports our modules and performs some tests
+- =ShowTable.rakumod= - most of the functionality is here
+- =Utils.rakumod= - a few general-purpose utils that stdlib lacks
+- =Colors.rakumod= - helpers for handling colored text in tables
+
+and we'll add 2 more modules later. Let's start with the longest and most
+heavily commented file first.
+
+** ShowTable.rakumod
+:PROPERTIES:
+:CUSTOM_ID: code__showtable.rakumod
+:END:
+*** Preamble
+:PROPERTIES:
+:CUSTOM_ID: code__preamble
+:END:
+
+#+begin_src raku :tangle a.rakumod
+  use v6.d;
+#+end_src
+
+Each file starts with a declaration of the minimum version of the language spec
+required to run this code. Apparently, the =v6= part will remain that way
+forever - as a bitter reminder of a historically bad decision to call Raku Perl6
+at first. So, instead the major releases are identified by the letter after dot.
+(Version "d", which apparently has code name "Diwali"[fn:6], is current, and
+replaced "c" for "Christmas" in 2018)
+
+#+begin_src raku :tangle a.rakumod
+  unit module ShowTable;
+#+end_src
+
+Modules can be written like this: =module M { ...defs... }=, but if there's just
+one module in a file, the =unit= qualifier comes in handy - it treats the rest
+of the file as a module body.
+
+BTW: for some reason "unit" is never highlighted as a keyword on Github and
+even on Raku's own page... Strange.
+
+#+begin_src raku :tangle a.rakumod
+  use Utils;
+  use Colors :types;  
+#+end_src
+
+Once inside our module, we import two other modules. =use= statement loads them,
+and then injects their exports into the current lexical scope, without warning
+and with impunity. The module system in Raku gives /way too much power/ to the
+module authors over what happens when their module is imported - it's especially
+harmful because the defaults are bad. I'll say more about it when discussing
+exports below.
+
+*** Subsets - common, run-time checked, constraints 
+:PROPERTIES:
+:CUSTOM_ID: code__subsets---common,-run-time-checked,-constraints
+:END:
+
+If you know Racket, then subsets are [[https://docs.racket-lang.org/reference/contracts.html][simply contracts]], end of story. That would
+be easy...
+
+Otherwise, you can think of them like this: a =subset= is a *named* set of
+*assertions* about the shape some value can take. Those assertions can be
+*attached to variables, parameters, and functions*. Syntactically, subsets can
+be used everywhere a simple type can, but checking is a value fullfils the
+assertions is done at run-time, so the range of what you can check for is much
+wider than with static types (in non-dependently-typed language, anyway).
+
+Another way of thinking about it is that subsets are syntactic sugar for the
+more commonly used pre-conditions. If a pre-condition pops up in multiple
+places, as long as it concerns a single variable or parameter, it can be
+extracted into a named =subset=. This might not make much sense now, but after
+you see a few pre-conditions at work, it should become clearer.
+
+# not like i had these all from the beginning...
+
+*One note:* these contracts are traditionally stored either at the top or at the
+bottom of a file, here - at the top. They were not written all at once, and they
+were closer to a place of use for most of the development time. In the first
+version of the code I used =Str= and =Int= everywhere, like a sane person would.
+I then started refining the contracts, trying to make them as precise as
+practically relevant, over a few rounds of refactoring.
+
+*Another note*: All of the constrained subtypes below are checked dynamically,
+at run-time. I honestly have no idea how expensive these are. I hope they get
+inlined properly, at least. In any case, run-time impact of contracts like this
+is always an issue, traditionally solved by disabling checking of assertions in
+release mode. I'm not sure if it's possible to easily do this in Raku: in the
+worst case I'd have to edit the definitions below manually to comment out all
+the =where= clauses, effectively transforming =subset= into a C-like =typedef=.
+
+
+#+begin_src raku :tangle a.rakumod
+  subset Positive of Int where * > 0;
+  subset Character of Str where { .chars == 1 }; # NOTE: made a mistake, wrote .elem here instead of .chars, postcondition caught it!
+#+end_src
+
+The names of these should be descriptive enough. The part that would need an
+explanation is probably just the one after =where=. What you put there has to be
+a callable, and is executed every time the variable constrained with the given
+=subset= is used.
+
+About the "callable" part: it has to be a routine that accepts a single
+parameter. Raku has quite a few ways of writing anonymous callables, here you
+can see two: [[https://docs.raku.org/type/WhateverCode][WhateverCode]] and [[https://docs.raku.org/type/Block][Block]]. The first one forms a block whose single
+argument is replaced for the star =*=. The other forms a block with a first
+positional variable assigned to a "topic variable", =$_=, inside the block
+(similar to blocks in Groovy or Kotlin, though they use =it= as a name). Another
+bit of syntax: in a method call, if the subject (or invokant in Raku-speak) is
+missing, the method is called on the topic variable.
+
+TODO: more on blocks?
+
+#+begin_src raku :tangle a.rakumod
+  subset MaybeColoredStr where Str | Colored;
+  subset ColumnSpec where Iterable | Int | Nil;
+#+end_src
+
+TODO: junctions, how they work, union types they are not
+
+#+begin_src raku :tangle a.rakumod
+  subset StrList of Iterable where { .cache.all ~~ MaybeColoredStr };
+  subset IntList of Iterable where { .cache.all ~~ Int };
+  subset StrTable of Iterable where { .cache.all ~~ StrList };
+#+end_src
+
+These checks are expensive, and they may have unintended cosequences for some of
+the =Iterable= sybtypes (eg. the lazy ones). On the other hand, not having to
+worry about the shape of the data *at all* within this module is too convenient
+to give up, and my use case does not involve large input sizes.
+
+#+begin_src raku :tangle a.rakumod
+  enum JustifyType is export <None Left Right Center>;
+#+end_src
+
+There are some advantages to the use of enums... and then there's Raku which
+eliminates almost all of them... 🙂 No exhaustiveness checking, no distinct
+identity for cases, no parametrization, just a little nicer syntax
+for a named subset of literal values. Basically, it's an =enum= you know and
+love from C, not a discriminated union you know and love more for ML.
+
+And BTW, see this?
+
+#+begin_src raku
+  enum JustifyType is export <None Left Right Center>;
+  #                            👆 
+#+end_src
+
+I wasn't intending on having this as an option, but then discovered that my
+first option has a value of 0, which is treated as false in boolean context -
+same as =Nil=. That means I'd need to check for definitedness (a way to discern
+=Nil= from other falsey values) when using =JustifyType= with optional
+arguments! I should probably just explicitly assign values to enums, but adding
+=None= that would be 0/False kind-of-sort-of makes sense in this case, too.
+
+
+*** Helpers for padding strings and lists
+:PROPERTIES:
+:CUSTOM_ID: code__helpers-for-padding-strings-and-lists
+:END:
+
+I have to wonder, didn't NPM and /left-pad/ fiasco[fn:7] teach us all that
+having no padding function in a standard library is a bad thing? (Well, among
+other things about contemporary programmers' culture, but that's for another
+time.) Most languages took it to heart; some examples:
+
+- Python has =str.ljust, str.rjust, and str.center=
+- Elixir has =String.pad_leading, String.pad_trailing= (no centering though)
+- Nim has =strutils.{alignRight, alignLeft, center}=
+- Haxe has =StringTools.{rpad, lpad}=
+- Ruby has =String.{center, ljust, rjust}=
+- Smalltalk (ST/X) has =CharArray>>{#paddedTo:, #leftPaddedTo:, #centerPaddedTo:}=
+- Groovy has ={.padLeft, .padRight, .center}= added to =java.lang.String=
+
+and so on... yet here Raku makes me code this by hand? Even Scala has at least
+=String.padTo=! Or maybe I'm supposed to install a package just for this? I'm
+still not quite sure what kinds of packages are there. I'll search for one
+later; for now, coding it here seems like a better idea, because it gives me a
+chance to demonstrate some of the Raku's safety features.
+
+#+begin_src raku :tangle a.rakumod
+  sub str-justify(
+      MaybeColoredStr $s,
+      Positive $limit,
+      JustifyType $type,
+      Character $pad = " ",
+      --> Str(MaybeColoredStr)
+  ) is export(:tests) {
+      PRE $s.chars <= $limit;
+      POST $_✔{ .no-color.chars == $limit } # NOTE: caught the problem with Character
+
+      my $diff := $limit - $s.chars;
+      given $type {
+          when Left  { $s ~ ($pad x $diff); }
+          when Right { ($pad x $diff) ~ $s; }
+          when * { warn "Type {$type} not implemented yet!"; $s } # a bug here would be caught by the postcondition, too
+      }
+  }
+#+end_src
+
+*TODO*: =our= and =is export= explanation
+
+# BTW: I think the module systems gives WAY too much to the module author. It's
+# a module's user that should decide which identifiers they wish to have
+# injected into often top-level module scope.
+
+#+begin_src raku :tangle a.rakumod
+  sub list-justify(
+      Iterable $row,
+      Positive $cols,
+      Any :$fill = "",
+      JustifyType :justify(:$type) = Left,
+      --> List
+  ) is export(:tests) {
+      PRE $row.elems <= $cols; # descr of c0ntract, { "jgvjv"; ...} or #= ?
+      PRE $row.map({ .WHAT }).all ~~ $fill.WHAT;
+      POST $_✔{ .elems == $cols };
+
+      return $row if .elems == $cols;
+      my $diff := $cols - $row.elems;
+      my $fill-list := (1..$diff).map:{ my $ = $fill }; # any other way?
+      given $type {
+          when Left  { $row ⊕ $fill-list }
+          when Right { $fill-list ⊕ $row }
+          when * { warn "Type {$type} not implemented yet!"; $row }
+      }
+  }
+
+#+end_src
+
+The two routines look very similar, but I'm not convinced DRYing them would be a
+good idea. The =list-justify= is more general, and we could reduce =str-justify=
+to a simple call to =list-justify=:
+
+#+begin_src raku
+  list-justify($s.comb, $limit, $pad).join;
+#+end_src
+
+But handling colored text would still need to be done somewhere, and I imagine
+using Str-specific functions will be faster than converting back and forth
+between Str and List. We could make both justify functions into a single
+=multi=, but I don't think it would be any better then currently.
+
+To abstract over the kind of a thing we're padding/justifying further we would
+need to take a bunch of functions/operators, namely for: getting length of the
+thing, multiplying (repeating) the thing, and concatenating two things. It would
+be ={.chars}=, =&infix:<~>=, =&infix:<x>=, respectively, for strings. It can be
+done, but again, I don't see the reason to. 
+
+Also, first-class functions, especially partially applied ones, are really bad
+for performance on MoarVM. As you can read on the [[https://moarvm.com/roadmap.html][Roadmap page]], work on
+optimizing this is ongoing:
+
+#+begin_quote
+Better optimization around closures
+
+Today's optimizer does a poor job of, and has an inability to inline, first
+class functions and closures. Recent work has started to collect the data needed
+to do better; optimizations to exploit it are still to come.
+#+end_quote
+
+
+*** Formatting a single cell
+:PROPERTIES:
+:CUSTOM_ID: code__formatting-a-single-cell
+:END:
+
+#+begin_src raku :tangle a.rakumod
+  #| Make sure the returned string has exactly $limit characters, clipping or
+  #| padding as needed.
+  our sub format-cell(
+      MaybeColoredStr $text,
+      Positive $cell-width,
+      JustifyType :justify(:$cell-justify-type) = Left,
+      Character :$cell-padding = " ",
+      --> Str(MaybeColoredStr)
+  ) {
+      POST $_✔{ .no-color.chars == $cell-width };
+
+      my Int $char-num := $text.chars;
+      if $char-num > $cell-width {
+          $text.substr(0, $cell-width - 1) ~ "…";
+      }
+      elsif $char-num < $cell-width && ?$cell-justify-type { # "Some people would have paused here and started making jokes about how Raku can't have a "normal else if"... Whoever you are, please, don't be one of people like *that*...""
+          str-justify($text, $cell-width, $cell-justify-type, $cell-padding);
+      }
+      else {
+          $text;
+      }
+  }
+#+end_src
+
+*** Formatting the whole table
+:PROPERTIES:
+:CUSTOM_ID: code__formatting-the-whole-table
+:END:
+
+In this routine, we make sure we're dealing with data of one shape only: a list
+of rows of equal length, with each row being a list of strings. 
+
+This assumption is expressed succintly and enforced by simply mentioning
+=StrTable= in a type position. This assumption is costly to enforce, but frees
+this routine from the need to handle most edge cases. 
+
+In some Lisps, there's a map-list/apply-map-list idiom[fn:3], which forms a
+=zip= function. Raku has both =zip= function and a zip /operator/, =Z=; it has
+also a =reduce= (often called =fold= or =fold-left=) function and
+/meta-operator/ too, so the apply-map-list is written as essentially reduce-zip,
+but with shorthand syntax: =[Z] list-of-lists=. It's a simple way of transposing
+the table, from list of rows to a list of columns and vice versa.
+
+#+begin_src raku :tangle a.rakumod
+  our sub format-table(
+      StrTable $table is copy,
+      Str :$col-separator = " ",
+      Positive :$col-separator-width = 5,
+      ColumnSpec :w(:chars(:$col-widths)) = Nil,
+      Character :$cell-padding = " ",
+      JustifyType :justify(:$cell-justify-type) = Left,
+      --> Str
+  ) is export {
+      # length of each row has to be the same - we can transpose the table with
+      # [Z] only in that case without worrying about lost elements
+      PRE [==] $table».elems;
+      PRE $col-widths ~~ Iterable ?? $col-widths.elems == $table[0].elems !! True;
+
+      my Str $fill := $col-separator x $col-separator-width;
+      my @table = @$table;
+      my $cols := [Z] @table;
+      dd $cols;
+      for get-col-widths($col-widths, $cols).kv -> $col, $max {
+          $cols[$col].=map:{ format-cell($_, $max, :$cell-padding)  }
+      }
+      # for @table { .join($fill).comb.raku.say }
+      join "\n", (.join($fill) for @table);
+  }
+
+  our sub show-table(|args) {
+      put format-table(|args);
+  }
+#+end_src
+
+*** Helpers for interpreting column widths argument
+:PROPERTIES:
+:CUSTOM_ID: code__helpers-for-interpreting-column-widths-argument
+:END:
+
+TODO: first multi-method
+
+#+begin_src raku :tangle a.rakumod
+  multi get-col-widths(Int $width, @cols --> IntList) { $width xx @cols.elems }
+  multi get-col-widths(Iterable $widths, @cols --> IntList) { $widths }
+  multi get-col-widths($ where ?*.not, @cols --> IntList) { samewith(@cols) }
+
+  multi get-col-widths(@cols where { .all ~~ StrList  } --> IntList) {
+      POST $_✔{ .elems == @cols.elems };
+      my @widths[@cols.elems];
+      @widths[$_] = @cols[$_]».chars.max for @widths.keys;
+      @widths
+  }
+#+end_src
+
+*** Converting lists to tables - the user-facing interface of the module
+:PROPERTIES:
+:CUSTOM_ID: code__converting-lists-to-tables---the-user-facing-interface-of-the-module
+:END:
+
+#+begin_src raku :tangle a.rakumod
+  use Terminal::Width; # TODO: be smarter about cols number/width if not specified
+
+  our sub to-table(StrList $seq, Int :$cols = 5 --> StrTable) is export {
+      my $table := $seq.batch($cols)».Array.Array;
+      $table.tail.=&list-justify($cols);
+      $table
+  }
+
+  sub make-lorem-table(Int :r(:$rows), Int :$cols, Int :$max = 9 --> StrTable) is export(:tests) {
+      to-table :$cols, (Utils::lorem-word($max) xx ($rows × $cols))
+  }
+
+  our sub show-list-in-table(
+      StrList $seq, :$cols = 6, :$row-padding = " ", *%kwargs
+  ) is export {
+      $seq
+      ==> to-table(:$cols)
+      ==> show-table(|%kwargs);
+  }
+#+end_src
+
+** Utils.rakumod
+:PROPERTIES:
+:CUSTOM_ID: code__utils.rakumod
+:END:
+
+#+begin_src raku :tangle u.rakumod
+use v6.d;
+
+unit module Utils;
+
+sub show-section-sep() is export { print "\n" ~ "=" x 10 ~ "\n" x 2; }
+sub show-subsection-sep() is export { print "\n" ~ "-" x 10 ~ "\n\n"; }
+
+multi sub show-section($enabled, &block) { samewith(&block) if $enabled; }
+multi sub show-section(&block) is export {
+    show-section-sep;
+    block();
+    show-section-sep;
+}
+
+my @lorem-chars = [ |('a'..'z'), |('A'..'Z'), |('0'..'9') ];
+
+our sub lorem-word(Int $max = 9, Int $min = 3) is export {
+    my $span = $min .. $max;
+    @lorem-chars.roll($span.pick).join("")
+}
+
+
+our sub bench(Int $rep, &block) {
+    my $times = do for ^$rep {
+        block();
+        now - ENTER now;
+    }
+    my ($fst, *$rest) = $times;
+    say "Calls: $rep / ", $fst, " / ", do .sum / .elems with $rest;
+}
+
+
+our sub defined-and(Mu $x, &block) is export {
+    return True unless $x.defined;
+    block($x);
+}
+
+multi sub infix:<✔>(Mu $x, &block) is export {
+    return True unless $x.defined;
+    block($x);
+}
+
+
+# https://github.com/ajs/perl6-Operator-Listcat/blob/master/lib/Operator/Listcat.pm6
+multi sub infix:<listcat>(@a, @b) is equiv(&infix:<~>) is export { |@a, |@b }
+multi sub infix:<⊕>(Iterable $a, Iterable $b) is looser(&infix:<xx>) is export {
+    |$a, |$b
+}
+#+end_src
+
+** Colors.rakumod
+:PROPERTIES:
+:CUSTOM_ID: code__colors.rakumod
+:END:
+
+#+begin_src raku :tangle c.rakumod
+use v6.d;
+
+use MONKEY; # 🙈
+
+unit module Colors;
+
+use Terminal::ANSIColor;
+
+
+our class Colored is export(:types) {
+    has Str $.style;
+    has Str $.string handles ("chars");
+
+    method new($str, $style) {
+        self.bless(style => $style, string => $str)
+    }
+    method substr(::?CLASS:D: |args) {
+        $!string.=substr(|args);
+        self.Str;
+    }
+    method Str() { $!string.&colored($!style) }
+}
+
+
+augment class Str {
+    method color(Str:D : Str $c) {
+        Colored.new(self, $c)
+    }
+
+    method no-color(Str:D:) {
+        colorstrip(self)
+    }
+}
+#+end_src
+
+
+
+* Examples of usage
+:PROPERTIES:
+:CUSTOM_ID: examples-of-usage
+:END:
+
+** Meta.rakumod
+:PROPERTIES:
+:CUSTOM_ID: examples-of-usage__meta.rakumod
+:END:
+#+begin_src raku :tangle m.rakumod
+#+end_src
+
+** pkgs.raku
+:PROPERTIES:
+:CUSTOM_ID: examples-of-usage__pkgs.raku
+:END:
+
+#+begin_src raku :tangle p.raku
+#+end_src
+
+* Other
+:PROPERTIES:
+:CUSTOM_ID: other
+:END:
+
+* Footnotes
+:PROPERTIES:
+:CUSTOM_ID: footnotes
+:END:
+[fn:3] In Racket: =(apply map list '((a b) (c d))) ;=> '((a c) (b d))= 
+
+[fn:7] If you need refresher - I needed - here's the first googled article:
+https://www.davidhaney.io/npm-left-pad-have-we-forgotten-how-to-program/
+
+[fn:6] Annual festival of light in Hinduism, happening for a few days in October
+and November... apparently. 
+
+[fn:5] http://literateprogramming.com/ and
+https://en.wikipedia.org/wiki/Literate_programming
+
+[fn:4] https://matt.might.net/articles/i-love-you-in-racket/ 
+
+[fn:2] CoffeeScript was in top 5 languages in the study, and LS is even more
+succint than Coffee.
+
+[fn:1] Though methodology there is a bit questionable, at best. Plus, it's from
+2013, and many languages didn't make it onto a list, and there are multiple
+languages that faded into (even more) obscurity since then.
+
+* COMMENT ...
+:PROPERTIES:
+:CUSTOM_ID: ...
+:END:
+
+** fragments
+:PROPERTIES:
+:CUSTOM_ID: fragments
+:END:
+interested in the [[https://raku.org][Raku]] programming language. I even have a proper use-case this
+time! Put simply: I want a shell-script replacement that is much safer to use
+than BASH, but also more succint than Python. Another thing: I'd prefer a
+general-purpose language, thank you for the suggestion, but no Elvish, Murex,
+Oil, etc. Moving on:
+
+
+So it started from the REPL. You see, you can check what methods has any given
+object if you invoke a metaclass method called ~methods~. This is the same
+approach as in Smalltalk/X:
+
+#+begin_src smalltalk
+  2 class getMethodDictionary keys.
+  "OrderedCollection(#'*' #'+' #'-' #'/' #'//' #'\\' #abs #negated #quo: #bitAnd: #bitClear: #bitCount #bitInvert ....etc)"
+#+end_src
+
+in Raku this is written:
+
+#+begin_src raku
+  2.^methods
+#+end_src
+
+I mean, something about ~^~ character and "higher level", meta-programming? It's
+just basic introspection though... 
+
+In any case, the problem is in how the methods returned are represented, and
+displayed. By default it looks like this:
+
+#+begin_src text
+  (new Capture Int sign Num Rat FatRat abs Bridge sqrt base polymod expmod is-prime floor ceiling round lsb msb narrow Range conj rand sin asin cos acos tan atan atan2 sec asec cosec acosec cotan acotan sinh asinh cosh acosh tanh atanh sech asech cosech acosech cotanh acotanh unpolar cis Complex log exp truncate isNaN log2 log10 roots succ pred WHICH ACCEPTS raku Bool Str Real Numeric gist DUMP BUILDALL chr unimatch uniname uniprop unival)
+#+end_src
+
+and, coupled with acute lack of screen real-estate, would be presented like
+this:
+
+
+Unnecessary addendum: you know when was the last time I've seen a REPL this
+pretty? When working with FORTH. Really:
+
+
+Hopefuly your shell would have wrapped the line for you, but that doesn't help
+with readability much. It's possible to print each method in its own line
+easily, but then there's too much space wasted, and you have to scroll to see
+the beginning of the list, which is also less convenient then it could be.
+
+So, to make the introspection a little more helpful, and for science of course!,
+I decided to write a module for printing tables in a terminal. There are some
+similar packages on https://raku.land, but neither one is exactly what I want,
+and anyway, at that point I didn't think such a thing would be package-worthy on
+its own. 
+
+
+** File local variables
+  :PROPERTIES:
+  :CUSTOM_ID: file-local-variables
+  :END:
+
+# (remove-hook 'after-save-hook 'org-html-export-to-html)
+
+# Local Variables:                                                 #
+# eval: (add-hook 'after-save-hook 'org-html-export-to-html nil t) #
+# eval: (add-hook 'after-save-hook 'org-babel-tangle nil t)        #
+# End:                                                             #

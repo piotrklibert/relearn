@@ -40,7 +40,7 @@ sub MAIN($run, *@args where {.elems > 0}) {
     say "Base paths:"; @args.map({"- $_".indent(4)})».say;
     my @files = get-files-to-watch @args».IO;
     @files = @files.grep(none /migrations/|/pycache/).grep(/'.py'$/|/'.raku'.*$/).map(*.IO);
-    say "Watching: "; show-list-in-table :3cols, :45chars, @files.map(*.Str.subst($base-re, './'));
+    # say "Watching: "; show-list-in-table :3cols, :45chars, @files.map(*.Str.subst($base-re, './'));
     say +@files;
     loop {
         my $supply = @files».watch.reduce({ $^a.merge($^b) });
