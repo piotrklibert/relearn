@@ -8,16 +8,16 @@
 :CUSTOM_ID: foreword
 :END:
 
-*** Time to learn something new
+*** Time to learn something new!
 :PROPERTIES:
-:CUSTOM_ID: time-to-learn-something-new
+:CUSTOM_ID: foreword__time-to-learn-something-new!
 :END:
 
 It's been quite a long time since I last learned a new programming language that
 was even a bit interesting. I learned [[https://www.lua.org/][Lua]], [[https://moonscript.org/][MoonScript]], and then [[https://haxe.org/][Haxe]] to script
-my window manager, then came back to [[https://www.gnu.org/software/smalltalk/][Smalltalk]] trying to create a shell in it,
-and more recently I learned [[https://www.rust-lang.org/][Rust]] for [[https://webassembly.org/][WebAssembly]] development. It's been more
-than 3 months since then, so it's time to move on again!
+my window manager, then came back to [[https://www.gnu.org/software/smalltalk/][Smalltalk]] trying to create a multi-player
+shell in it, and more recently I learned [[https://www.rust-lang.org/][Rust]] for [[https://webassembly.org/][WebAssembly]] development. It's
+been more than 3 months since then, so it's time to move on again!
 
 This time I wanted a language that I could use for quick, often one-off, scripts
 for command line. Instead of a traditional mixture of =sed=, =AWK=, =BASH=, and
@@ -32,7 +32,7 @@ than that, I wanted something *succint* and *expressive*, supporting creation of
 
 *** Eliminations
 :PROPERTIES:
-:CUSTOM_ID: eliminations
+:CUSTOM_ID: foreword__eliminations
 :END:
 
 After preliminary investigation and some research, out of [[https://klibert.pl/timeline.png][quite a few]] languages
@@ -78,7 +78,7 @@ a while.
 
 *** So what's up with this article?
 :PROPERTIES:
-:CUSTOM_ID: so-what's-up-with-this-article
+:CUSTOM_ID: foreword__so-what's-up-with-this-article
 :END:
 
 Well, I decided to document my learning of Raku somehow. I thought of a simple
@@ -88,7 +88,7 @@ implementing it in Raku, reading lots of docs in the process.
 Normally, the effect of this would be a some code in a module on my disk and
 nothing else. But I thought that, with a bit of a commentary, that code could be
 of help to others wanting to learn Raku. I decided to turn the module into a
-Literate Programming[fn:5] document.
+Literate Programming[fn:3] document.
 
 *Warning:* all of this is written purely *for science* (and fun)! The code is
 not intended to be /idiomatic/, /fast/, or /fit for any purpose/ other than the
@@ -97,7 +97,7 @@ found in Raku.
 
 *** So what are we going to build?
 :PROPERTIES:
-:CUSTOM_ID: so-what-are-we-going-to-build
+:CUSTOM_ID: foreword__so-what-are-we-going-to-build
 :END:
 
 It's very simple. Problem statement:
@@ -132,17 +132,23 @@ That's it for introduction, let's move over to the code.
 :CUSTOM_ID: code
 :END:
 
-Let's start writing the module. Raku source code is kept in files with =.raku=
-and =.rakumod= extensions; the former meant for scripts, the latter for... well,
-modules. We'll be creating a bunch of modules and one script:
+** Overview
+:PROPERTIES:
+:CUSTOM_ID: code__overview
+:END:
+
+Raku source code is kept in files with =.raku= and =.rakumod= extensions[fn:4];
+the former meant for scripts, the latter for... well, modules. We'll be creating
+a bunch of modules and one script (in this section, there are some more files in
+the next two):
 
 - =run.raku= - imports our modules and performs some tests
 - =ShowTable.rakumod= - most of the functionality is here
 - =Utils.rakumod= - a few general-purpose utils that stdlib lacks
 - =Colors.rakumod= - helpers for handling colored text in tables
 
-and we'll add 2 more modules later. Let's start with the longest and most
-heavily commented file first.
+Let's start with the longest and most heavily commented file first:
+=ShowTable.rakumod=, the heart of the library.
 
 ** ShowTable.rakumod
 :PROPERTIES:
@@ -161,7 +167,7 @@ Each file starts with a declaration of the minimum version of the language spec
 required to run this code. Apparently, the =v6= part will remain that way
 forever - as a bitter reminder of a historically bad decision to call Raku Perl6
 at first. So, instead the major releases are identified by the letter after dot.
-(Version "d", which apparently has code name "Diwali"[fn:6], is current, and
+(Version "d", which apparently has code name "Diwali"[fn:5], is current, and
 replaced "c" for "Christmas" in 2018)
 
 #+begin_src raku :tangle a.rakumod
@@ -295,7 +301,7 @@ arguments! I should probably just explicitly assign values to enums, but adding
 :CUSTOM_ID: code__helpers-for-padding-strings-and-lists
 :END:
 
-I have to wonder, didn't NPM and /left-pad/ fiasco[fn:7] teach us all that
+I have to wonder, didn't NPM and /left-pad/ fiasco[fn:6] teach us all that
 having no padding function in a standard library is a bad thing? (Well, among
 other things about contemporary programmers' culture, but that's for another
 time.) Most languages took it to heart; some examples:
@@ -438,7 +444,7 @@ This assumption is expressed succintly and enforced by simply mentioning
 =StrTable= in a type position. This assumption is costly to enforce, but frees
 this routine from the need to handle most edge cases. 
 
-In some Lisps, there's a map-list/apply-map-list idiom[fn:3], which forms a
+In some Lisps, there's a map-list/apply-map-list idiom[fn:7], which forms a
 =zip= function. Raku has both =zip= function and a zip /operator/, =Z=; it has
 also a =reduce= (often called =fold= or =fold-left=) function and
 /meta-operator/ too, so the apply-map-list is written as essentially reduce-zip,
@@ -642,34 +648,10 @@ augment class Str {
 #+begin_src raku :tangle p.raku
 #+end_src
 
-* Other
+* Other scripts
 :PROPERTIES:
-:CUSTOM_ID: other
+:CUSTOM_ID: other-scripts
 :END:
-
-* Footnotes
-:PROPERTIES:
-:CUSTOM_ID: footnotes
-:END:
-[fn:3] In Racket: =(apply map list '((a b) (c d))) ;=> '((a c) (b d))= 
-
-[fn:7] If you need refresher - I needed - here's the first googled article:
-https://www.davidhaney.io/npm-left-pad-have-we-forgotten-how-to-program/
-
-[fn:6] Annual festival of light in Hinduism, happening for a few days in October
-and November... apparently. 
-
-[fn:5] http://literateprogramming.com/ and
-https://en.wikipedia.org/wiki/Literate_programming
-
-[fn:4] https://matt.might.net/articles/i-love-you-in-racket/ 
-
-[fn:2] CoffeeScript was in top 5 languages in the study, and LS is even more
-succint than Coffee.
-
-[fn:1] Though methodology there is a bit questionable, at best. Plus, it's from
-2013, and many languages didn't make it onto a list, and there are multiple
-languages that faded into (even more) obscurity since then.
 
 * COMMENT ...
 :PROPERTIES:
@@ -678,7 +660,7 @@ languages that faded into (even more) obscurity since then.
 
 ** fragments
 :PROPERTIES:
-:CUSTOM_ID: fragments
+:CUSTOM_ID: ...__fragments
 :END:
 interested in the [[https://raku.org][Raku]] programming language. I even have a proper use-case this
 time! Put simply: I want a shell-script replacement that is much safer to use
@@ -732,12 +714,35 @@ and anyway, at that point I didn't think such a thing would be package-worthy on
 its own. 
 
 
-** File local variables
-  :PROPERTIES:
-  :CUSTOM_ID: file-local-variables
-  :END:
 
-# (remove-hook 'after-save-hook 'org-html-export-to-html)
+* Footnotes
+:PROPERTIES:
+:CUSTOM_ID: footnotes
+:END:
+
+[fn:1] Though methodology there is a bit questionable, at best. Plus, it's from
+2013, and many languages didn't make it onto a list, and there are multiple
+languages that faded into (even more) obscurity since then.
+
+[fn:2] CoffeeScript was in top 5 languages in the study, and LS is even more
+succint than Coffee.
+
+[fn:3] http://literateprogramming.com/ and
+https://en.wikipedia.org/wiki/Literate_programming
+
+[fn:4] I think these are now recommended, there seem to be a few other
+extensions, either used for specific things like tests (with =.t=), or
+deprecated ones based on previous name of the language, eg. =.p6=.
+
+[fn:5] Annual festival of light in Hinduism, happening for a few days in October
+and November... apparently.
+
+[fn:6] If you need refresher - I needed - here's the first googled article:
+https://www.davidhaney.io/npm-left-pad-have-we-forgotten-how-to-program/
+
+[fn:7] In Racket: =(apply map list '((a b) (c d))) ;=> '((a c) (b d))=
+
+
 
 # Local Variables:                                                 #
 # eval: (add-hook 'after-save-hook 'org-html-export-to-html nil t) #
