@@ -154,12 +154,12 @@ Let's start with the longest and most heavily commented file first:
 :PROPERTIES:
 :CUSTOM_ID: code__showtable.rakumod
 :END:
-*** Preamble
+*** Module preamble
 :PROPERTIES:
-:CUSTOM_ID: code__preamble
+:CUSTOM_ID: code__showtable.rakumod__module-preamble
 :END:
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   use v6.d;
 #+end_src
 
@@ -170,18 +170,25 @@ at first. So, instead the major releases are identified by the letter after dot.
 (Version "d", which apparently has code name "Diwali"[fn:5], is current, and
 replaced "c" for "Christmas" in 2018)
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   unit module ShowTable;
 #+end_src
 
-Modules can be written like this: =module M { ...defs... }=, but if there's just
-one module in a file, the =unit= qualifier comes in handy - it treats the rest
-of the file as a module body.
+Modules can be written like this:
 
-BTW: for some reason "unit" is never highlighted as a keyword on Github and
+#+begin_src raku
+  module M {
+      # functions, classes, etc. here
+  }
+#+end_src
+
+but if there's just one module in a file, the =unit= qualifier comes in handy -
+it treats the rest of the file as a module body.
+
+BTW: for some reason "unit" is never highlighted as a keyword on Github[fn:8] and
 even on Raku's own page... Strange.
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   use Utils;
   use Colors :types;  
 #+end_src
@@ -195,7 +202,7 @@ exports below.
 
 *** Subsets - common, run-time checked, constraints 
 :PROPERTIES:
-:CUSTOM_ID: code__subsets---common,-run-time-checked,-constraints
+:CUSTOM_ID: code__showtable.rakumod__subsets---common,-run-time-checked,-constraints
 :END:
 
 If you know Racket, then subsets are [[https://docs.racket-lang.org/reference/contracts.html][simply contracts]], end of story. That would
@@ -232,7 +239,7 @@ worst case I'd have to edit the definitions below manually to comment out all
 the =where= clauses, effectively transforming =subset= into a C-like =typedef=.
 
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   subset Positive of Int where * > 0;
   subset Character of Str where { .chars == 1 }; # NOTE: made a mistake, wrote .elem here instead of .chars, postcondition caught it!
 #+end_src
@@ -253,14 +260,14 @@ missing, the method is called on the topic variable.
 
 TODO: more on blocks?
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   subset MaybeColoredStr where Str | Colored;
   subset ColumnSpec where Iterable | Int | Nil;
 #+end_src
 
 TODO: junctions, how they work, union types they are not
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   subset StrList of Iterable where { .cache.all ~~ MaybeColoredStr };
   subset IntList of Iterable where { .cache.all ~~ Int };
   subset StrTable of Iterable where { .cache.all ~~ StrList };
@@ -271,7 +278,7 @@ the =Iterable= sybtypes (eg. the lazy ones). On the other hand, not having to
 worry about the shape of the data *at all* within this module is too convenient
 to give up, and my use case does not involve large input sizes.
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   enum JustifyType is export <None Left Right Center>;
 #+end_src
 
@@ -295,10 +302,9 @@ same as =Nil=. That means I'd need to check for definitedness (a way to discern
 arguments! I should probably just explicitly assign values to enums, but adding
 =None= that would be 0/False kind-of-sort-of makes sense in this case, too.
 
-
 *** Helpers for padding strings and lists
 :PROPERTIES:
-:CUSTOM_ID: code__helpers-for-padding-strings-and-lists
+:CUSTOM_ID: code__showtable.rakumod__helpers-for-padding-strings-and-lists
 :END:
 
 I have to wonder, didn't NPM and /left-pad/ fiasco[fn:6] teach us all that
@@ -320,7 +326,7 @@ still not quite sure what kinds of packages are there. I'll search for one
 later; for now, coding it here seems like a better idea, because it gives me a
 chance to demonstrate some of the Raku's safety features.
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   sub str-justify(
       MaybeColoredStr $s,
       Positive $limit,
@@ -346,7 +352,7 @@ chance to demonstrate some of the Raku's safety features.
 # a module's user that should decide which identifiers they wish to have
 # injected into often top-level module scope.
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   sub list-justify(
       Iterable $row,
       Positive $cols,
@@ -401,13 +407,12 @@ class functions and closures. Recent work has started to collect the data needed
 to do better; optimizations to exploit it are still to come.
 #+end_quote
 
-
 *** Formatting a single cell
 :PROPERTIES:
-:CUSTOM_ID: code__formatting-a-single-cell
+:CUSTOM_ID: code__showtable.rakumod__formatting-a-single-cell
 :END:
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   #| Make sure the returned string has exactly $limit characters, clipping or
   #| padding as needed.
   our sub format-cell(
@@ -434,7 +439,7 @@ to do better; optimizations to exploit it are still to come.
 
 *** Formatting the whole table
 :PROPERTIES:
-:CUSTOM_ID: code__formatting-the-whole-table
+:CUSTOM_ID: code__showtable.rakumod__formatting-the-whole-table
 :END:
 
 In this routine, we make sure we're dealing with data of one shape only: a list
@@ -451,7 +456,7 @@ also a =reduce= (often called =fold= or =fold-left=) function and
 but with shorthand syntax: =[Z] list-of-lists=. It's a simple way of transposing
 the table, from list of rows to a list of columns and vice versa.
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   our sub format-table(
       StrTable $table is copy,
       Str :$col-separator = " ",
@@ -484,12 +489,12 @@ the table, from list of rows to a list of columns and vice versa.
 
 *** Helpers for interpreting column widths argument
 :PROPERTIES:
-:CUSTOM_ID: code__helpers-for-interpreting-column-widths-argument
+:CUSTOM_ID: code__showtable.rakumod__helpers-for-interpreting-column-widths-argument
 :END:
 
 TODO: first multi-method
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   multi get-col-widths(Int $width, @cols --> IntList) { $width xx @cols.elems }
   multi get-col-widths(Iterable $widths, @cols --> IntList) { $widths }
   multi get-col-widths($ where ?*.not, @cols --> IntList) { samewith(@cols) }
@@ -504,10 +509,10 @@ TODO: first multi-method
 
 *** Converting lists to tables - the user-facing interface of the module
 :PROPERTIES:
-:CUSTOM_ID: code__converting-lists-to-tables---the-user-facing-interface-of-the-module
+:CUSTOM_ID: code__showtable.rakumod__converting-lists-to-tables---the-user-facing-interface-of-the-module
 :END:
 
-#+begin_src raku :tangle a.rakumod
+#+begin_src raku :tangle ShowTable.rakumod
   use Terminal::Width; # TODO: be smarter about cols number/width if not specified
 
   our sub to-table(StrList $seq, Int :$cols = 5 --> StrTable) is export {
@@ -534,7 +539,7 @@ TODO: first multi-method
 :CUSTOM_ID: code__utils.rakumod
 :END:
 
-#+begin_src raku :tangle u.rakumod
+#+begin_src raku :tangle Utils.rakumod
 use v6.d;
 
 unit module Utils;
@@ -590,7 +595,7 @@ multi sub infix:<⊕>(Iterable $a, Iterable $b) is looser(&infix:<xx>) is export
 :CUSTOM_ID: code__colors.rakumod
 :END:
 
-#+begin_src raku :tangle c.rakumod
+#+begin_src raku :tangle Colors.rakumod
 use v6.d;
 
 use MONKEY; # 🙈
@@ -626,8 +631,6 @@ augment class Str {
 }
 #+end_src
 
-
-
 * Examples of use
 :PROPERTIES:
 :CUSTOM_ID: examples-of-use
@@ -635,17 +638,162 @@ augment class Str {
 
 ** Meta.rakumod
 :PROPERTIES:
-:CUSTOM_ID: examples-of-use__meta.rakumod
+:CUSTOM_ID: meta.rakumod
 :END:
-#+begin_src raku :tangle m.rakumod
+
+#+begin_src raku :tangle Meta.rakumod
+  use v6.d;
+
+  unit module Meta;
+
+  use Terminal::ANSIColor;
+
+  use Utils;
+  use ShowTable;
+
+
+  my $package-names = (
+      "MY", "OUR", "CORE", "GLOBAL", "PROCESS", "CALLER", "CALLERS",
+      "DYNAMIC", "OUTER", "OUTERS", "LEXICAL", "UNIT", "SETTING", "PARENT",
+      "CLIENT"
+  );
+
+  # change my -> our to make all the functions available at once when testing
+  module Priv {
+      sub all-caps(Str $s --> Bool()) is export {
+          $s.match: / ^(<upper>|<[-&$@_%!]>)+$ /;
+      }
+
+      sub show-class-header(Mu \obj) is export {
+          say (
+              "Class",
+              colored(obj.^name, "green"),
+              "is:",
+              colored(obj.^mro.raku, "yellow"),
+              "does:",
+              colored((try obj.^roles.raku) || "<ERROR>", "bold")
+          ).join(' ');
+      }
+
+      sub natural-ordering(Str $a, Str $b) is export {
+          my ($caps-a, $caps-b) = (all-caps($a), all-caps($b));
+          # dd $caps-a, $caps-b, $a, $b;
+          my Order $ret = do {
+              when $caps-a  && $caps-b  { $a cmp $b }
+              when $caps-a  && !$caps-b { Less }
+              when !$caps-a && $caps-b  { More }
+              default                   { $a cmp $b }
+          }
+          # dd $ret;
+          $ret
+      }
+
+      sub sort-by-name(Iterable $seq) is export {
+          $seq.sort({ natural-ordering($^a.name, $^b.name) })
+      }
+
+
+      sub classify-symbols($seq) is export {
+          $seq.classify: {
+              when all-caps(.name) { 'caps' }
+              when .name.match(/^<upper>/) { 'upper' }
+              default { 'lower' }
+          }
+      }
+  }
+
+  import Priv;
+
+
+  # ==============================================================================
+
+
+  our sub meths(Mu \obj) is export {
+      show-section-sep;
+      show-class-header(obj);
+      print "\n";
+
+      my $rows = sort-by-name(obj.^methods.unique(:as(*.name))).map: {
+          (colored(.name, "yellow"), .signature.raku, (try "{.file} : {.line}") || "<BUILT-IN>")
+      };
+      show-table($rows, :widths(15, 40, 40));
+  }
+
+
+  our sub doc($query, :l(:$lines) = 15) is export {
+      my $res = qqx[ rakudoc '$query' ];
+      if $res {
+          say $res.lines[^$lines].join("\n")
+      };
+      "";
+  }
+
+
+  our sub cls(Mu \obj) is export {
+      my $m = obj.^methods.unique(:as(*.name));
+      my %m = classify-symbols($m);
+      show-section-sep;
+      show-class-header(obj);
+      for <caps upper lower> {
+          FIRST show-subsection-sep;
+          sort-by-name(%m{$_})>>.name ==> show-list-in-table(:5cols) if %m{$_}:exists;
+          show-subsection-sep;
+      }
+  }
+
+
+  our sub ns($pkg) is export {
+      # EXPORT::ALL::.keys
+      my $fuck = 3;
+      say $pkg.^name;
+      # say ::("CALLER")::EXPORT::ALL::.keys;
+      # $package-names.map({ "- " ~ (try { $_ ~ " " ~ ::("$_")::.keys.raku } || $_ )})>>.say;
+  }
+
 #+end_src
 
 ** pkgs.raku
 :PROPERTIES:
-:CUSTOM_ID: examples-of-use__pkgs.raku
+:CUSTOM_ID: pkgs.raku
 :END:
 
-#+begin_src raku :tangle p.raku
+#+begin_src raku :tangle pkgs.raku
+  use v6.d;
+
+  use JSON::Fast;
+
+  use Colors;
+  use ShowTable;
+  use Utils;
+
+
+  sub dt(Str $s --> Str) {
+      with $s.DateTime {
+          (.year, "-", .month.fmt('%02d'), "-", .day.fmt('%02d') ).join
+      }
+  }
+
+
+  show-section 1, {
+      my constant $fields := <name updated eco likes desc>;
+      my constant $widths := [25,  10,     5,  3,    60];
+
+      my @table = [];
+
+      for "raku.pkgs".IO.lines -> $line {
+          my $rows := $line.&from-json()>>.{ $fields };
+          next unless $rows;
+          my $cols := [Z] $rows;
+          $cols[1].=map(&dt);     # Why is it working? What made $cols mutable?
+          $rows := [Z] $cols;
+          @table.append($rows);
+      }
+      @table.=squish(as => { .[0].lc });
+      @table.=grep({ (.[0] | .[4]) ~~ rx:i/term/ });
+      dd @table;
+      show-table(@table, :col-widths($widths));
+  }
+
 #+end_src
 
 * Other scripts
@@ -660,7 +808,7 @@ augment class Str {
 
 ** fragments
 :PROPERTIES:
-:CUSTOM_ID: ...__fragments
+:CUSTOM_ID: fragments
 :END:
 interested in the [[https://raku.org][Raku]] programming language. I even have a proper use-case this
 time! Put simply: I want a shell-script replacement that is much safer to use
@@ -719,6 +867,8 @@ its own.
 :PROPERTIES:
 :CUSTOM_ID: footnotes
 :END:
+
+[fn:8] TODO: link 
 
 [fn:1] Though methodology there is a bit questionable, at best. Plus, it's from
 2013, and many languages didn't make it onto a list, and there are multiple
