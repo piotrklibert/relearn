@@ -622,21 +622,21 @@ augment class Str {
 
 
 
-* Examples of usage
+* Examples of use
 :PROPERTIES:
-:CUSTOM_ID: examples-of-usage
+:CUSTOM_ID: examples-of-use
 :END:
 
 ** Meta.rakumod
 :PROPERTIES:
-:CUSTOM_ID: examples-of-usage__meta.rakumod
+:CUSTOM_ID: examples-of-use__meta.rakumod
 :END:
 #+begin_src raku :tangle m.rakumod
 #+end_src
 
 ** pkgs.raku
 :PROPERTIES:
-:CUSTOM_ID: examples-of-usage__pkgs.raku
+:CUSTOM_ID: examples-of-use__pkgs.raku
 :END:
 
 #+begin_src raku :tangle p.raku
