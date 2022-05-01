@@ -192,7 +192,7 @@ Modules can be written like this:
 but if there's just one module in a file, the =unit= qualifier comes in handy -
 it treats the rest of the file as a module body.
 
-BTW: for some reason "unit" is never highlighted as a keyword on Github[fn:8] and
+BTW: for some reason "unit" is never highlighted as a keyword on Github[fn:6] and
 even on Raku's own page... Strange.
 
 #+begin_src raku +n :tangle ShowTable.rakumod
@@ -281,7 +281,7 @@ constructs set the topic variable, including =for=, =with=, and =given= keywords
 
 Ok, so you remember I told you that =where= needs to be passed a callable?
 Actually, no, I lied. Well, simplified. The truth is you can put there anything
-that you can use the =~~= "smart-matching" operator[fn:10] on. That operator
+that you can use the =~~= "smart-matching" operator[fn:7] on. That operator
 works mostly by calling a magic-method called =ACCEPTS= on RHS. Various "things"
 implement that method, including - as you probably realized already - callables,
 where smart-matching simply calls the routine with LHS operand as an argument.
@@ -326,7 +326,7 @@ fragment!
 #+end_src
 
 These checks are *expensive*, and they may have unintended cosequences for some
-of the =Iterable= sybtypes (eg. the lazy ones, hence the =.cache=[fn:9] call).
+of the =Iterable= sybtypes (eg. the lazy ones, hence the =.cache=[fn:8] call).
 On the other hand, not having to worry about the shape of the data *at all*
 within this module is too convenient to give up, and my use case does not
 involve large input sizes.
@@ -360,7 +360,7 @@ arguments! I should probably just explicitly assign values to enums, but adding
 :CUSTOM_ID: code__showtable.rakumod__helpers-for-padding-strings-and-lists
 :END:
 
-I have to wonder, didn't NPM and /left-pad/ fiasco[fn:6] teach us all that
+I have to wonder, didn't NPM and /left-pad/ fiasco[fn:9] teach us all that
 having no padding function in a standard library is a bad thing? (Well, among
 other things about contemporary programmers' culture, but that's for another
 time.) Most languages took it to heart; some examples:
@@ -549,7 +549,7 @@ worrying about losing elements.
   }
 #+end_src
 
-In some Lisps, there's a map-list/apply-map-list idiom[fn:7], which forms a
+In some Lisps, there's a map-list/apply-map-list idiom[fn:10], which forms a
 =zip= function. Raku has both =zip= function and a zip /operator/, =Z=; it has
 also the =reduce= (often called =fold= or =fold-left=) function and
 /meta-operator/ too, so the apply-map-list is written as essentially reduce-zip,
@@ -1007,18 +1007,7 @@ similar packages on https://raku.land, but neither one is exactly what I want,
 and anyway, at that point I didn't think such a thing would be package-worthy on
 its own. 
 
-
-
 * Footnotes
-:PROPERTIES:
-:CUSTOM_ID: footnotes
-:END:
-
-[fn:10] [[https://docs.raku.org/routine/~~]]
-
-[fn:9] https://docs.raku.org/routine/cache#(Any)_method_cache 
-
-[fn:8] TODO: link 
 
 [fn:1] Though methodology there is a bit questionable, at best. Plus, it's from
 2013, and many languages didn't make it onto a list, and there are multiple
@@ -1037,13 +1026,16 @@ deprecated ones based on previous name of the language, eg. =.p6=.
 [fn:5] Annual festival of light in Hinduism, happening for a few days in October
 and November... apparently.
 
-[fn:6] If you need refresher - I needed - here's the first googled article:
+[fn:6] TODO: link
+
+[fn:7] [[https://docs.raku.org/routine/~~]]
+
+[fn:8] https://docs.raku.org/routine/cache#(Any)_method_cache
+
+[fn:9] If you need refresher - I needed - here's the first googled article:
 https://www.davidhaney.io/npm-left-pad-have-we-forgotten-how-to-program/
 
-[fn:7] In Racket: =(apply map list '((a b) (c d))) ;=> '((a c) (b d))=
-
-
-
+[fn:10] In Racket: =(apply map list '((a b) (c d))) ;=> '((a c) (b d))=
 # Local Variables:                                                 #
 # eval: (add-hook 'after-save-hook 'org-html-export-to-html nil t) #
 # eval: (add-hook 'after-save-hook 'org-babel-tangle nil t)        #
