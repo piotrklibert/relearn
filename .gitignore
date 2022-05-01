@@ -1,2 +1,8 @@
 /.precomp/
 /raku/.precomp/
+/raku/Utils.rakumod
+/raku/Colors.rakumod
+/raku/Meta.rakumod
+/raku/ShowTable.rakumod
+/raku/tmp/
+/raku/writeup.html

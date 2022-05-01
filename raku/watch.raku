@@ -1,52 +1,46 @@
 use v6.d;
 
-use Terminal::ANSIColor;
-
-use Dirs;
+use Utils;
+use Colors;
 use ShowTable;
 
-my constant Change = IO::Notification::Change;
-# apparently, selective import is something that needs to be delegated to the
-# ecosystem. There are some modules available, but for the simple case of
-# shortening package-qualified names this construct suffices. BTW, the defaults
-# for the module system are really bad in Raku. Well, better than Ruby, but
-# still.
+constant Change = IO::Notification::Change;
 
-sub re-run(Change $ch, Str $cmd) {
-    say "{$ch.path} changed, running command:";
-    say colored("\n$cmd\n".indent(4), "bold");
-    my $status = shell($cmd).exitcode;
+
+constant $command = "raku -Iraku raku/run.raku";
+
+
+sub re-run(Change $change) {
+    my $path := $change.path;
+    put "$path changed, running command:\n\t$command";
+    my $status = shell($command).exitcode;
     my $color = $status ?? "red" !! "green";
-    say colored("==========\n", $color);
+    put "\n==========\n".indent(4).in-color($color);
     my $elapsed = now - ENTER now;
-    say "   Elapsed: ", $elapsed;
+    put "Elapsed: $elapsed".indent(4).in-color($color);
     if $status == 0 {  qqx[ noti -m "$elapsed" -t "OK" ];    }
     else            {  qqx[ noti -m "$elapsed" -t "ERROR" ]; }
 }
 
 
-sub get-files-to-watch(@paths where {.all ~~ IO::Path}) {
-    gather for @paths -> $path {
-        unless $path.d { take $path; next; }
-        for Dirs::list-dir($path) -> ($dir, $subdirs, $files) {
-            $files.map({"$dir/$_"}).map(*.take)
-        }
-    }
-}
+# sub get-files-to-watch(@paths where {.all ~~ IO::Path}) {
+#     gather for @paths -> $path {
+#         unless $path.d { take $path; next; }
+#         for list-dir($path) -> ($dir, $subdirs, $files) {
+#             $files.map({"$dir/$_"}).map(*.take)
+#         }
+#     }
+# }
 
-my constant $base-re := /'/home/cji/projects/trusted-checkin/backend/checkin/'/;
-
-sub MAIN($run, *@args where {.elems > 0}) {
-    say "Base paths:"; @args.map({"- $_".indent(4)})».say;
-    my @files = get-files-to-watch @args».IO;
-    @files = @files.grep(none /migrations/|/pycache/).grep(/'.py'$/|/'.raku'.*$/).map(*.IO);
-    # say "Watching: "; show-list-in-table :3cols, :45chars, @files.map(*.Str.subst($base-re, './'));
-    say +@files;
+sub MAIN(Str $base) {
+    my @files = dir($base).grep(/ '.raku'('mod')? $/).grep(none /watch/);
+    say "Watching: "; @files».absolute.map(*.indent(4).say); say "";
     loop {
         my $supply = @files».watch.reduce({ $^a.merge($^b) });
         react {
-            whenever $supply { re-run($_, $run); done }
-            whenever signal(SIGINT) | $?FILE.IO.watch { exit } # ie. got Ctrl+C or source changed
+            whenever $supply { re-run($_); done }
+            # ie. either got Ctrl+C or this file changed
+            whenever signal(SIGINT) | $?FILE.IO.watch { exit }
         }
         $supply = Nil;
     }

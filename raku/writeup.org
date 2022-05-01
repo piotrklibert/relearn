@@ -131,7 +131,6 @@ That's it for introduction, let's move over to the code.
 :PROPERTIES:
 :CUSTOM_ID: code
 :END:
-
 ** Overview
 :PROPERTIES:
 :CUSTOM_ID: code__overview
@@ -140,7 +139,7 @@ That's it for introduction, let's move over to the code.
 Raku source code is kept in files with =.raku= and =.rakumod= extensions[fn:4];
 the former meant for scripts, the latter for... well, modules. We'll be creating
 a bunch of modules and one script (in this section, there are some more files in
-the next two):
+the following ones):
 
 - =run.raku= - imports our modules and performs some tests
 - =ShowTable.rakumod= - most of the functionality is here
@@ -159,7 +158,7 @@ Let's start with the longest and most heavily commented file first:
 :CUSTOM_ID: code__showtable.rakumod__module-preamble
 :END:
 
-#+begin_src raku :tangle ShowTable.rakumod
+#+begin_src raku -n :tangle ShowTable.rakumod
   use v6.d;
 #+end_src
 
@@ -170,7 +169,7 @@ at first. So, instead the major releases are identified by the letter after dot.
 (Version "d", which apparently has code name "Diwali"[fn:5], is current, and
 replaced "c" for "Christmas" in 2018)
 
-#+begin_src raku :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod
   unit module ShowTable;
 #+end_src
 
@@ -188,7 +187,7 @@ it treats the rest of the file as a module body.
 BTW: for some reason "unit" is never highlighted as a keyword on Github[fn:8] and
 even on Raku's own page... Strange.
 
-#+begin_src raku :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod
   use Utils;
   use Colors :types;  
 #+end_src
@@ -205,15 +204,15 @@ exports below.
 :CUSTOM_ID: code__showtable.rakumod__subsets---common,-run-time-checked,-constraints
 :END:
 
-If you know Racket, then subsets are [[https://docs.racket-lang.org/reference/contracts.html][simply contracts]], end of story. That would
-be easy...
+If you know Racket, then subsets are [[https://docs.racket-lang.org/reference/contracts.html][simply flat contracts]].
 
 Otherwise, you can think of them like this: a =subset= is a *named* set of
-*assertions* about the shape some value can take. Those assertions can be
-*attached to variables, parameters, and functions*. Syntactically, subsets can
-be used everywhere a simple type can, but checking is a value fullfils the
-assertions is done at run-time, so the range of what you can check for is much
-wider than with static types (in non-dependently-typed language, anyway).
+*assertions* about the shape or structure some value can take. Those assertions
+can be *attached to variables, parameters, and functions*. Syntactically,
+=subsets= can be used everywhere a simple type can, but checking if a value
+fullfils the assertions is done at run-time, so the range of what you can check
+for is much wider than with static types (in non-dependently-typed language,
+anyway).
 
 Another way of thinking about it is that subsets are syntactic sugar for the
 more commonly used pre-conditions. If a pre-condition pops up in multiple
@@ -232,17 +231,22 @@ practically relevant, over a few rounds of refactoring.
 
 *Another note*: All of the constrained subtypes below are checked dynamically,
 at run-time. I honestly have no idea how expensive these are. I hope they get
-inlined properly, at least. In any case, run-time impact of contracts like this
-is always an issue, traditionally solved by disabling checking of assertions in
-release mode. I'm not sure if it's possible to easily do this in Raku: in the
-worst case I'd have to edit the definitions below manually to comment out all
-the =where= clauses, effectively transforming =subset= into a C-like =typedef=.
+inlined properly, at least. 
+
+In any case, run-time impact of contracts like this is always an issue,
+traditionally solved by disabling checking of assertions in release mode. I'm
+not sure if it's possible to easily do this in Raku: in the worst case I'd have
+to edit the definitions below manually to comment out all the =where= clauses,
+effectively transforming =subset= into a C-like =typedef=.
 
 
-#+begin_src raku :tangle ShowTable.rakumod
-  subset Positive of Int where * > 0;
-  subset Character of Str where { .chars == 1 }; # NOTE: made a mistake, wrote .elem here instead of .chars, postcondition caught it!
+#+begin_src raku +n :tangle ShowTable.rakumod
+  subset Positive of Int where * > 0;            # same as { $_ > 0 }
+  subset Character of Str where { .chars == 1 }; # same as { $_.chars == 1 }
+                                                 # or as *.chars == 1
 #+end_src
+
+# NOTE: made a mistake, wrote .elem here instead of .chars, postcondition caught it!
 
 The names of these should be descriptive enough. The part that would need an
 explanation is probably just the one after =where=. What you put there has to be
@@ -252,33 +256,74 @@ a callable, and is executed every time the variable constrained with the given
 About the "callable" part: it has to be a routine that accepts a single
 parameter. Raku has quite a few ways of writing anonymous callables, here you
 can see two: [[https://docs.raku.org/type/WhateverCode][WhateverCode]] and [[https://docs.raku.org/type/Block][Block]]. The first one forms a block whose single
-argument is replaced for the star =*=. The other forms a block with a first
-positional variable assigned to a "topic variable", =$_=, inside the block
-(similar to blocks in Groovy or Kotlin, though they use =it= as a name). Another
-bit of syntax: in a method call, if the subject (or invokant in Raku-speak) is
-missing, the method is called on the topic variable.
+argument is replaced for the star =*= in the enclosing expression. The other
+forms a block with the first positional parameter assigned to a "topic
+variable", called =$_=, inside the block (similar to how blocks in Groovy or
+Kotlin use =it= as a default block argument name). 
 
-TODO: more on blocks?
+Another bit of syntax: in a method call, if the object (or "invokant" in
+Raku-speak) is missing, the method is called on the topic variable. Various
+constructs set the topic variable, including =for=, =with=, and =given= keywords.
 
-#+begin_src raku :tangle ShowTable.rakumod
+
+#+begin_src raku +n :tangle ShowTable.rakumod
   subset MaybeColoredStr where Str | Colored;
   subset ColumnSpec where Iterable | Int | Nil;
 #+end_src
 
-TODO: junctions, how they work, union types they are not
+Ok, so you remember I told you that =where= needs to be passed a callable?
+Actually, no, I lied. Well, simplified. The truth is you can put there anything
+that you can use the =~~= "smart-matching" operator[fn:10] on. That operator
+works mostly by calling a magic-method called =ACCEPTS= on RHS. Various "things"
+implement that method, including - as you probably realized already - callables,
+where smart-matching simply calls the routine with LHS operand as an argument.
 
-#+begin_src raku :tangle ShowTable.rakumod
+So what you can put into =where= clause includes everything that works with
+=~~=, which is basically anything. For simple values, smart-matching is
+analogous to structural comparison (written as ===== normally), but for type
+and role (interfaces, mixins) they perform an =.isa= or =.does= check on the LHS
+value.
+
+*TL;DR*: =MaybeColoredStr=, when used, will check whether a given value is a
+=Str=, =Colored=, or any of their subclasses.
+
+The last interesting bit of syntax, and an interesting concepts is "junctions".
+Junctions are basically lazy conditions that aggregate a bunch of condition
+subjects, and are responsible for applying a check to all junctions members and
+combining results. You could do the same with collections, but the syntax of
+junctions is much nices. Last example on junctions before moving on:
+
+#+begin_src raku
+  dd my $ored = (3 | 4 | 5);      # is the same as: (3, 4, 5).any
+  # Junction $ored = any(3, 4, 5)
+  dd (4 == $ored);
+  # any(Bool::False, Bool::True, Bool::False)
+  dd (4 == $ored).so;             # reduces to single value in boolen context
+  # Bool::True
+  dd my $anded = (3 & 4 & 5);     # is the same as: (3, 4, 5).all
+  # Junction $anded = all(3, 4, 5)
+  dd $anded ∈ 1..10;              # ∈ mean "is element of"
+  # all(True, True, True)
+  dd ($anded ∈ 1..10).so;         # again, reduces to a single value
+  # Bool::True
+#+end_src
+
+Pay attention to the "is the same as" comments: you'll need them in the next
+fragment!
+
+#+begin_src raku +n :tangle ShowTable.rakumod
   subset StrList of Iterable where { .cache.all ~~ MaybeColoredStr };
   subset IntList of Iterable where { .cache.all ~~ Int };
   subset StrTable of Iterable where { .cache.all ~~ StrList };
 #+end_src
 
-These checks are expensive, and they may have unintended cosequences for some of
-the =Iterable= sybtypes (eg. the lazy ones). On the other hand, not having to
-worry about the shape of the data *at all* within this module is too convenient
-to give up, and my use case does not involve large input sizes.
+These checks are *expensive*, and they may have unintended cosequences for some
+of the =Iterable= sybtypes (eg. the lazy ones, hence the =.cache=[fn:9] call).
+On the other hand, not having to worry about the shape of the data *at all*
+within this module is too convenient to give up, and my use case does not
+involve large input sizes.
 
-#+begin_src raku :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod
   enum JustifyType is export <None Left Right Center>;
 #+end_src
 
@@ -326,7 +371,9 @@ still not quite sure what kinds of packages are there. I'll search for one
 later; for now, coding it here seems like a better idea, because it gives me a
 chance to demonstrate some of the Raku's safety features.
 
-#+begin_src raku :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod
+  #| Pads given string with a given character up to a limit. Can pad on both
+  #| sides.
   sub str-justify(
       MaybeColoredStr $s,
       Positive $limit,
@@ -348,11 +395,15 @@ chance to demonstrate some of the Raku's safety features.
 
 *TODO*: =our= and =is export= explanation
 
+*TODO*: first pre- and post-conditions
+
+*TODO*: coercible types
+
 # BTW: I think the module systems gives WAY too much to the module author. It's
 # a module's user that should decide which identifiers they wish to have
 # injected into often top-level module scope.
 
-#+begin_src raku :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod
   sub list-justify(
       Iterable $row,
       Positive $cols,
@@ -360,9 +411,8 @@ chance to demonstrate some of the Raku's safety features.
       JustifyType :justify(:$type) = Left,
       --> List
   ) is export(:tests) {
-      PRE $row.elems <= $cols; # descr of c0ntract, { "jgvjv"; ...} or #= ?
-      PRE $row.map({ .WHAT }).all ~~ $fill.WHAT;
-      POST $_✔{ .elems == $cols };
+      PRE $row.elems <= $cols; # TODO: description/extended name for the contract, { "jgvjv"; ...} or maybe  #= ?
+      POST $_✔{ .elems == $cols };  
 
       return $row if .elems == $cols;
       my $diff := $cols - $row.elems;
@@ -370,10 +420,9 @@ chance to demonstrate some of the Raku's safety features.
       given $type {
           when Left  { $row ⊕ $fill-list }
           when Right { $fill-list ⊕ $row }
-          when * { warn "Type {$type} not implemented yet!"; $row }
+          when * { warn "Type {$type} not implemented yet!"; $row  }
       }
   }
-
 #+end_src
 
 The two routines look very similar, but I'm not convinced DRYing them would be a
@@ -387,7 +436,7 @@ to a simple call to =list-justify=:
 But handling colored text would still need to be done somewhere, and I imagine
 using Str-specific functions will be faster than converting back and forth
 between Str and List. We could make both justify functions into a single
-=multi=, but I don't think it would be any better then currently.
+=multi=, but I don't think it would be any better then currently. Or would it?
 
 To abstract over the kind of a thing we're padding/justifying further we would
 need to take a bunch of functions/operators, namely for: getting length of the
@@ -412,7 +461,7 @@ to do better; optimizations to exploit it are still to come.
 :CUSTOM_ID: code__showtable.rakumod__formatting-a-single-cell
 :END:
 
-#+begin_src raku :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod
   #| Make sure the returned string has exactly $limit characters, clipping or
   #| padding as needed.
   our sub format-cell(
@@ -428,7 +477,7 @@ to do better; optimizations to exploit it are still to come.
       if $char-num > $cell-width {
           $text.substr(0, $cell-width - 1) ~ "…";
       }
-      elsif $char-num < $cell-width && ?$cell-justify-type { # "Some people would have paused here and started making jokes about how Raku can't have a "normal else if"... Whoever you are, please, don't be one of people like *that*...""
+      elsif $char-num < $cell-width && ?$cell-justify-type { 
           str-justify($text, $cell-width, $cell-justify-type, $cell-padding);
       }
       else {
@@ -436,6 +485,10 @@ to do better; optimizations to exploit it are still to come.
       }
   }
 #+end_src
+
+"Some people would have paused here and started making jokes about how Raku
+can't have a "normal else if"... Whoever you are, please, don't be one of
+people like *that*...""
 
 *** Formatting the whole table
 :PROPERTIES:
@@ -449,14 +502,16 @@ This assumption is expressed succintly and enforced by simply mentioning
 =StrTable= in a type position. This assumption is costly to enforce, but frees
 this routine from the need to handle most edge cases. 
 
-In some Lisps, there's a map-list/apply-map-list idiom[fn:7], which forms a
-=zip= function. Raku has both =zip= function and a zip /operator/, =Z=; it has
-also a =reduce= (often called =fold= or =fold-left=) function and
-/meta-operator/ too, so the apply-map-list is written as essentially reduce-zip,
-but with shorthand syntax: =[Z] list-of-lists=. It's a simple way of transposing
-the table, from list of rows to a list of columns and vice versa.
+There are two things that the =StrTable= contract doesn't enforce, so we check
+for them in the first precondition. The =$table= has to be non-empty, and
+lengths of each row have to be the same. The latter condition is important,
+because it lets us rotate the table with =[Z]= meta-operator (see below) without
+worrying about losing elements.
 
-#+begin_src raku :tangle ShowTable.rakumod
+
+#+begin_src raku +n :tangle ShowTable.rakumod
+  #| Create a multi-line string with values from $table aligned into columns.
+  #| Passed $table cannot be empty.
   our sub format-table(
       StrTable $table is copy,
       Str :$col-separator = " ",
@@ -466,15 +521,13 @@ the table, from list of rows to a list of columns and vice versa.
       JustifyType :justify(:$cell-justify-type) = Left,
       --> Str
   ) is export {
-      # length of each row has to be the same - we can transpose the table with
-      # [Z] only in that case without worrying about lost elements
-      PRE [==] $table».elems;
-      PRE $col-widths ~~ Iterable ?? $col-widths.elems == $table[0].elems !! True;
+      PRE $table.elems > 0 && [==] $table».elems; # NOTE
+      PRE ($col-widths ~~ Iterable)⁈{ $col-widths.elems == $table[0].elems };
 
       my Str $fill := $col-separator x $col-separator-width;
       my @table = @$table;
-      my $cols := [Z] @table;
-      dd $cols;
+      my $cols = [Z] @table;
+
       for get-col-widths($col-widths, $cols).kv -> $col, $max {
           $cols[$col].=map:{ format-cell($_, $max, :$cell-padding)  }
       }
@@ -482,10 +535,18 @@ the table, from list of rows to a list of columns and vice versa.
       join "\n", (.join($fill) for @table);
   }
 
-  our sub show-table(|args) {
+  our sub show-table(|args) is export {
       put format-table(|args);
   }
 #+end_src
+
+In some Lisps, there's a map-list/apply-map-list idiom[fn:7], which forms a
+=zip= function. Raku has both =zip= function and a zip /operator/, =Z=; it has
+also the =reduce= (often called =fold= or =fold-left=) function and
+/meta-operator/ too, so the apply-map-list is written as essentially reduce-zip,
+but with shorthand syntax: =[Z] list-of-lists=. It's a simple way of rotating
+the table, from list of rows to a list of columns and vice versa.
+
 
 *** Helpers for interpreting column widths argument
 :PROPERTIES:
@@ -494,7 +555,7 @@ the table, from list of rows to a list of columns and vice versa.
 
 TODO: first multi-method
 
-#+begin_src raku :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod
   multi get-col-widths(Int $width, @cols --> IntList) { $width xx @cols.elems }
   multi get-col-widths(Iterable $widths, @cols --> IntList) { $widths }
   multi get-col-widths($ where ?*.not, @cols --> IntList) { samewith(@cols) }
@@ -512,7 +573,7 @@ TODO: first multi-method
 :CUSTOM_ID: code__showtable.rakumod__converting-lists-to-tables---the-user-facing-interface-of-the-module
 :END:
 
-#+begin_src raku :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod
   use Terminal::Width; # TODO: be smarter about cols number/width if not specified
 
   our sub to-table(StrList $seq, Int :$cols = 5 --> StrTable) is export {
@@ -528,9 +589,7 @@ TODO: first multi-method
   our sub show-list-in-table(
       StrList $seq, :$cols = 6, :$row-padding = " ", *%kwargs
   ) is export {
-      $seq
-      ==> to-table(:$cols)
-      ==> show-table(|%kwargs);
+      $seq ==> to-table(:$cols) ==> show-table(|%kwargs);
   }
 #+end_src
 
@@ -540,54 +599,75 @@ TODO: first multi-method
 :END:
 
 #+begin_src raku :tangle Utils.rakumod
-use v6.d;
+  use v6.d;
 
-unit module Utils;
+  unit module Utils;
 
-sub show-section-sep() is export { print "\n" ~ "=" x 10 ~ "\n" x 2; }
-sub show-subsection-sep() is export { print "\n" ~ "-" x 10 ~ "\n\n"; }
+  sub show-section-sep() is export { print "\n" ~ "=" x 10 ~ "\n" x 2; }
+  sub show-subsection-sep() is export { print "\n" ~ "-" x 10 ~ "\n\n"; }
 
-multi sub show-section($enabled, &block) { samewith(&block) if $enabled; }
-multi sub show-section(&block) is export {
-    show-section-sep;
-    block();
-    show-section-sep;
-}
+  multi sub show-section($enabled, &block) { samewith(&block) if $enabled; }
+  multi sub show-section(&block) is export {
+      show-section-sep;
+      block();
+      show-section-sep;
+  }
 
-my @lorem-chars = [ |('a'..'z'), |('A'..'Z'), |('0'..'9') ];
+  my @lorem-chars = [ |('a'..'z'), |('A'..'Z'), |('0'..'9') ];
 
-our sub lorem-word(Int $max = 9, Int $min = 3) is export {
-    my $span = $min .. $max;
-    @lorem-chars.roll($span.pick).join("")
-}
-
-
-our sub bench(Int $rep, &block) {
-    my $times = do for ^$rep {
-        block();
-        now - ENTER now;
-    }
-    my ($fst, *$rest) = $times;
-    say "Calls: $rep / ", $fst, " / ", do .sum / .elems with $rest;
-}
+  our sub lorem-word(Int $max = 9, Int $min = 3) is export {
+      my $span = $min .. $max;
+      @lorem-chars.roll($span.pick).join("")
+  }
 
 
-our sub defined-and(Mu $x, &block) is export {
-    return True unless $x.defined;
-    block($x);
-}
+  our sub bench(Int $rep, &block) {
+      my $times = do for ^$rep {
+          block();
+          now - ENTER now;
+      }
+      my ($fst, *$rest) = $times;
+      say "Calls: $rep / ", $fst, " / ", do .sum / .elems with $rest;
+  }
 
-multi sub infix:<✔>(Mu $x, &block) is export {
-    return True unless $x.defined;
-    block($x);
-}
+
+  our sub defined-and(Mu $x, &block) is export {
+      return True unless $x.defined;
+      block($x);
+  }
+
+  multi sub infix:<✔>(Mu $x, &block) is export {
+      return True unless $x.defined;
+      block($x);
+  }
+
+  multi sub infix:<⁈>(Mu $x, &block) is export {
+      return True unless $x.so;
+      block($x);
+  }
 
 
-# https://github.com/ajs/perl6-Operator-Listcat/blob/master/lib/Operator/Listcat.pm6
-multi sub infix:<listcat>(@a, @b) is equiv(&infix:<~>) is export { |@a, |@b }
-multi sub infix:<⊕>(Iterable $a, Iterable $b) is looser(&infix:<xx>) is export {
-    |$a, |$b
-}
+  # https://github.com/ajs/perl6-Operator-Listcat/blob/master/lib/Operator/Listcat.pm6
+  multi sub infix:<listcat>(@a, @b) is equiv(&infix:<~>) is export { |@a, |@b }
+  multi sub infix:<⊕>(Iterable $a, Iterable $b) is looser(&infix:<xx>) is export {
+      |$a, |$b
+  }
+
+
+  our sub join-paths($base, $other --> IO::Path) is export { "$base/$other".IO }
+
+  our sub list-dir($init where Str | IO::Path --> Seq) is export {
+      my IO::Path @subdirs = [$init.IO.absolute.IO];
+      gather while @subdirs {
+          my $cur = @subdirs.shift(); # say $cur;
+          my $seq := $cur.dir.cache;
+          my ($, $dirs, $files) =
+              take ($cur, $seq.grep(*.d)».basename, $seq.grep(*.d.not)».basename);
+          my &absolutize := { join-paths($cur, $_) }
+          @subdirs.prepend: $dirs».&absolutize;
+      }
+  }
+
 #+end_src
 
 ** Colors.rakumod
@@ -596,39 +676,46 @@ multi sub infix:<⊕>(Iterable $a, Iterable $b) is looser(&infix:<xx>) is export
 :END:
 
 #+begin_src raku :tangle Colors.rakumod
-use v6.d;
+  use v6.d;
 
-use MONKEY; # 🙈
+  use MONKEY; # 🙈
 
-unit module Colors;
+  unit module Colors;
 
-use Terminal::ANSIColor;
-
-
-our class Colored is export(:types) {
-    has Str $.style;
-    has Str $.string handles ("chars");
-
-    method new($str, $style) {
-        self.bless(style => $style, string => $str)
-    }
-    method substr(::?CLASS:D: |args) {
-        $!string.=substr(|args);
-        self.Str;
-    }
-    method Str() { $!string.&colored($!style) }
-}
+  use Terminal::ANSIColor;
 
 
-augment class Str {
-    method color(Str:D : Str $c) {
-        Colored.new(self, $c)
-    }
+  our class Colored is export(:types) {
+      has Str $.style;
+      has Str $.string handles ("chars");
 
-    method no-color(Str:D:) {
-        colorstrip(self)
-    }
-}
+      method new($str, $style) {
+          self.bless(style => $style, string => $str)
+      }
+      method substr(::?CLASS:D: |args) {
+          $!string.=substr(|args);
+          self.Str;
+      }
+
+      method in-color(Str $!style) {}
+
+      method no-color() {
+          $!string
+      }
+    
+      method Str() { $!string.&colored($!style) }
+  }
+
+
+  augment class Str {
+      method in-color(Str:D : Str $c) {
+          Colored.new(self, $c)
+      }
+
+      method no-color(Str:D:) {
+          colorstrip(self)
+      }
+  }
 #+end_src
 
 * Examples of use
@@ -638,7 +725,7 @@ augment class Str {
 
 ** Meta.rakumod
 :PROPERTIES:
-:CUSTOM_ID: meta.rakumod
+:CUSTOM_ID: examples-of-use__meta.rakumod
 :END:
 
 #+begin_src raku :tangle Meta.rakumod
@@ -754,7 +841,7 @@ augment class Str {
 
 ** pkgs.raku
 :PROPERTIES:
-:CUSTOM_ID: pkgs.raku
+:CUSTOM_ID: examples-of-use__pkgs.raku
 :END:
 
 #+begin_src raku :tangle pkgs.raku
@@ -801,6 +888,47 @@ augment class Str {
 :CUSTOM_ID: other-scripts
 :END:
 
+Re-run a command if one of the watched files changes.
+
+#+begin_src raku -n
+  use v6.d;
+
+  use Utils;
+  use Colors;
+  use ShowTable;
+
+  constant Change = IO::Notification::Change;
+
+  constant $command = "raku -Iraku raku/run.raku";
+
+
+  sub re-run(Change $change) {
+      my $path := $change.path;
+      put "$path changed, running command:\n\t$command";
+      my $status = shell($command).exitcode;
+      my $color = $status ?? "red" !! "green";
+      put "\n==========\n".indent(4).in-color($color);
+      my $elapsed = now - ENTER now;
+      put "Elapsed: $elapsed".indent(4).in-color($color);
+      if $status == 0 {  qqx[ noti -m "$elapsed" -t "OK" ];    }
+      else            {  qqx[ noti -m "$elapsed" -t "ERROR" ]; }
+  }
+
+  sub MAIN(Str $base) {
+      my @files = dir($base).grep(/ '.raku'('mod')? $/).grep(none /watch/);
+      say "Watching: "; @files».absolute.map(*.indent(4).say); say "";
+      loop {
+          my $supply = @files».watch.reduce({ $^a.merge($^b) });
+          react {
+              whenever $supply { re-run($_); done }
+              # ie. either got Ctrl+C or this file changed
+              whenever signal(SIGINT) | $?FILE.IO.watch { exit }
+          }
+          $supply = Nil;
+      }
+  }
+#+end_src
+
 * COMMENT ...
 :PROPERTIES:
 :CUSTOM_ID: ...
@@ -808,8 +936,17 @@ augment class Str {
 
 ** fragments
 :PROPERTIES:
-:CUSTOM_ID: fragments
+:CUSTOM_ID: ...__fragments
 :END:
+
+# my constant Change = IO::Notification::Change;
+# apparently, selective import is something that needs to be delegated to the
+# ecosystem. There are some modules available, but for the simple case of
+# shortening package-qualified names this construct suffices. BTW, the defaults
+# for the module system are really bad in Raku. Well, better than Ruby, but
+# still.
+
+
 interested in the [[https://raku.org][Raku]] programming language. I even have a proper use-case this
 time! Put simply: I want a shell-script replacement that is much safer to use
 than BASH, but also more succint than Python. Another thing: I'd prefer a
@@ -867,6 +1004,10 @@ its own.
 :PROPERTIES:
 :CUSTOM_ID: footnotes
 :END:
+
+[fn:10] [[https://docs.raku.org/routine/~~]]
+
+[fn:9] https://docs.raku.org/routine/cache#(Any)_method_cache 
 
 [fn:8] TODO: link 
 
