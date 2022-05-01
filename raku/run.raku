@@ -74,13 +74,16 @@ sub dt(Str $s --> Str) {
 show-section 1, {
     my constant $fields := <name updated eco likes desc>;
     my constant $widths := [25,  10,     5,  3,    60];
-
-    for "raku.pkgs".IO.lines -> $line {
+    show-table(
+        [["Name", "Updated", "Eco", "+1", "Description"],],
+        :col-widths($widths)
+    );
+    put "";
+    for "raku.pkgs".IO.lines[^10] -> $line {
         my $p := $line.&from-json()>>.{ $fields };
         next unless $p;
         my $cols := [Z] $p;
         $cols[1].=map(&dt);
         [Z] $cols ==> show-table(:col-widths($widths));
-        exit;
     }
 }

@@ -113,6 +113,14 @@ are obviously configurable):
 
 #+HTML: <img src="./img/end-result.png" width="60%" />
 
+Here it's used to interrogate an object in the REPL:
+
+#+HTML: <img src="./img/meta.png" width="60%" />
+
+And here's an example of use for displaying tabular data from JSON:
+
+#+HTML: <img src="./img/pkgs.png" width="60%" />
+
 Some side-goals:
 
 - showcase the *contracts-based* programming style in the vein of Racket, in
@@ -526,10 +534,11 @@ worrying about losing elements.
 
       my Str $fill := $col-separator x $col-separator-width;
       my @table = @$table;
-      my $cols = [Z] @table;
+      # NOTE: the [Z] @table doesn't work when there's only one row
+      my $cols := @table.elems == 1 ?? @table[0].map(*.list) !! [Z] @table;
 
       for get-col-widths($col-widths, $cols).kv -> $col, $max {
-          $cols[$col].=map:{ format-cell($_, $max, :$cell-padding)  }
+          $cols[$col].=map: { format-cell($_, $max, :$cell-padding) }
       }
       # for @table { .join($fill).comb.raku.say }
       join "\n", (.join($fill) for @table);
@@ -728,7 +737,7 @@ TODO: first multi-method
 :CUSTOM_ID: examples-of-use__meta.rakumod
 :END:
 
-#+begin_src raku :tangle Meta.rakumod
+#+begin_src raku -n :tangle Meta.rakumod
   use v6.d;
 
   unit module Meta;
