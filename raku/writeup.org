@@ -1,6 +1,18 @@
 #+TITLE: Printing tables in terminal with Raku
-#+OPTIONS: inline:t
-#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-bigblow.setup
+#+OPTIONS: inline:t toc:3
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/bigblow_theme/css/htmlize.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./css/bigblow.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/bigblow_theme/css/hideshow.css"/>
+
+#+HTML_HEAD: <script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/jquery-1.11.0.min.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/jquery-ui-1.10.2.min.js"></script>
+
+#+HTML_HEAD: <script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/jquery.localscroll-min.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/jquery.scrollTo-1.4.3.1-min.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/jquery.zclip.min.js"></script>
+# #+HTML_HEAD: <script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/bigblow.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/hideshow.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/lib/js/jquery.stickytableheaders.min.js"></script>
 #+HTML_HEAD: <style type="text/css"> pre { background-color: #232324 !important; color: white;  } .src-smalltalk, .src-text { color: white !important; } </style>
 
 * Foreword
@@ -8,7 +20,7 @@
 :CUSTOM_ID: foreword
 :END:
 
-*** Time to learn something new!
+** Time to learn something new!
 :PROPERTIES:
 :CUSTOM_ID: foreword__time-to-learn-something-new!
 :END:
@@ -17,7 +29,9 @@ It's been quite a long time since I last learned a new programming language that
 was even a bit interesting. I learned [[https://www.lua.org/][Lua]], [[https://moonscript.org/][MoonScript]], and then [[https://haxe.org/][Haxe]] to script
 my window manager, then came back to [[https://www.gnu.org/software/smalltalk/][Smalltalk]] trying to create a multi-player
 shell in it, and more recently I learned [[https://www.rust-lang.org/][Rust]] for [[https://webassembly.org/][WebAssembly]] development. It's
-been more than 3 months since then, so it's time to move on again!
+been more than 3 months since then, so it's time to move on again! (Update: I'm
+getting back to Smalltalk - I think of reviving my shell project using Visual
+Works...)
 
 This time I wanted a language that I could use for quick, often one-off, scripts
 for command line. Instead of a traditional mixture of =sed=, =AWK=, =BASH=, and
@@ -76,37 +90,115 @@ a while.
 # packages in their respective package repositiories. But, I know both Elisp and
 # LS, use then constantly, which would make the whole thing much less interesting.
 
-*** So what's up with this article?
+** What's up with this article?
 :PROPERTIES:
 :CUSTOM_ID: foreword__so-what's-up-with-this-article
 :END:
 
-Well, I decided to document my learning of Raku somehow. I thought of a simple
-project that should be immediately understood by anyone, and started
-implementing it in Raku, reading lots of docs in the process. 
+*** Motivation
 
-Normally, the effect of this would be a some code in a module on my disk and
-nothing else. But I thought that, with a bit of a commentary, that code could be
-of help to others wanting to learn Raku. I decided to turn the module into a
-Literate Programming[fn:3] document.
+Well, I decided to document my learning of Raku somehow. 
 
-*Warning:* all of this is written purely *for science* (and fun)! The code is
-not intended to be /idiomatic/, /fast/, or /fit for any purpose/ other than the
-one expressly stated, that is: to highlight interesting linguistic features I
-found in Raku.
+The usual process I take with most new languages is a bit complex; it's split
+into a few stages/phases, and one of them is supposed to end with ±500 lines of
+working code. That code is supposed to use minimal external dependencies - just
+base language and its stdlib. This happens to be where I am today with Raku (for
+reference: May 5th, 2022).
 
-*** So what are we going to build?
+Getting to this point, in Raku's case, wasn't very hard, but what made it more
+complicated was complete lack of materials of a certain type: ones that would
+give an overview of the more interesting or advanced features of the language. I
+found three types of resources:
+
+1. "Whirlwind tour"-style, very short, with very little (if any) explanation.
+2. Bite-sized blog posts on what to do in a certain situation.
+3. Long and detailed reference manuals in the official docs.
+
+What I felt was sorely missing was basically an aggregation of pt. 2. posts,
+with some additional explanation and links to the docs where needed.
+
+I thought that I might as well contribute something to improve the situation.
+This article is an attempt at that. At the same time, I'm trying to give
+feedback to the community on how its learning materials fare from the
+perspective of a beginner. I'm cheating, of course: I am by no means a beginner
+in *learning* programming languages, but in this case I think that would be an
+advantage
+
+*** The article formula
+
+To serve both purposes - to help future Raku beginners and to help community
+improve learning materials - I thought it would be best to start with the code I
+wrote during learning. This way I can both explain the reasons for using a
+feature (would be harder with someone else's code) and describe my experience of
+learning about it.
+
+In the end, I decided to turn the code I had - a simple package for printing
+text in columns - into a Literate Programming[fn:3] document. LP is a way of
+writing code that interleaves rich documentation with actual code. It's
+especially easy to do this due to Emacs, Org Mode[fn:13], and Babel[fn:14]. You
+can read the document in its intended form either on Github, or on my site:
+
+- [[https://github.com/piotrklibert/relearn/blob/master/raku/writeup.org][version in GitHub]]
+- [[https://klibert.pl/statics/raku/writeup.html][self-hosted article]] (recommended)
+
+*** Disclaimer and fair warning
+
+I read a bunch of docs and wrote some trivial code. That's the extent of my
+knowledge. Don't expect the code to be idiomatic - if it happens to be, that's
+by accident or mistake. I provide my explanations on an "as is" basis, without
+any warranty whatsoever. I'm writing from a perspective that allows me to be
+wrong, a lot, without consequences, so I probably *will* be wrong. I do accept
+PRs with corrections, though...
+
+At this point, after this article, I should be advancing to the next stage. To
+show you that I *am* paying attention and plan to dig deeper, here's a list of
+things that I did not yet have time to investigate:
+
+- how other similar packages[fn:12] are written
+- what general-purpose, quality-of-life improving utilities are available
+- the plans for the future and what is currently being implemented in Rakudo
+- the details of how the work is split between  Rakudo, NQP, and MoarVM 
+- what is it about RakuAST and if it's possible the macros become usable
+- what is written in The Official Raku Test Suite (ROAST)
+- what is happening in Raku's blog-o-sphere, including archives & current threads
+- who the main contributors are, what vision do they try to follow
+- how good is Comma IDE, a Raku-dedicated environment (the one and only)
+- how various constructs are implemented, including junctions and subsets
+- details of the meta-model - metaclasses, method objects, traits (but see note)
+- what is the performance in various conditions - I only have anecdata
+  (sample: 1)
+- why does =[Z]= (and even just repeated =Z= applications) work
+
+https://github.com/Raku/roast/blob/master/docs/announce/6.d.md
+http://blogs.perl.org/users/zoffix_znet/2018/11/announce-raku-perl-6-diwali-6d-language-specification-release.html
+
+
+Moreover, I didn't track the history of Raku, nor its prehistory (ie. Perl 5).
+Everything I write is based on roughly 4 weeks of afternoon sessions with docs
+and Google, as they were in _April-May 2022_.
+
+# > 1.HOW
+# Perl6::Metamodel::ClassHOW.new
+# > 1.HOW.HOW
+# (low-level object `NQPClassHOW`)
+# > 1.HOW.HOW
+
+** The example - aligning strings in columns
 :PROPERTIES:
 :CUSTOM_ID: foreword__so-what-are-we-going-to-build
 :END:
 
-It's very simple. Problem statement:
+The module we're going to write is a simple utility for printing tables - that
+is, a bunch of strings aligned into columns - in a terminal. The module should
+be able to also handle colored (or otherwise styled) text, where some parts of
+the string are control sequences that are not displayed (and hence need to be
+ignored when computing the width of a string).
 
-#+begin_quote
-Write a function that will take a list of strings and will print the words in an
-aligned table in the terminal. Make sure colored table elements are also
-displayed properly.
-#+end_quote
+The module should be somewhat configurable - the user should be able to choose
+padding characters, columns width, alignment type - but it's not going to be a
+full TUI framework. It's just an example. If you want to add interactivity,
+multiline cells, borders, etc. - there are already much better packages[fn:12]
+available!
 
 That's it. Here's the end result (the characters used to pad cells and columns
 are obviously configurable): 
@@ -121,19 +213,26 @@ And here's an example of use for displaying tabular data from JSON:
 
 #+HTML: <img src="./img/pkgs.png" width="60%" />
 
-Some side-goals:
+** Goals & assumptions
 
-- showcase the *contracts-based* programming style in the vein of Racket, in
-  Raku
-- make an example of something useful that uses the module functionality
+The basic goals are:
 
-If you're curious about the examples, the two I have in mind are:
+- highlight and explain interesting parts of Raku
+- show and promote *contracts-based* programming style[fn:11] in Raku
+- show a few (somewhat) useful scripts making use of the module
 
-- REPL introspection/ease of use improvement; and
-- standard, tabular JSON data printing 
+As for the assumptions, I expect my readers to be of two kinds, with greatly
+differing characteristics. Here's a little table:
 
-That's it for introduction, let's move over to the code.
+| Reader Type A                | Reader Type B        |
+|------------------------------+----------------------|
+| does not know Raku, at all   | knows Raku very well |
+| is intermediate+ programmer  | knows Raku very well |
+| knows 3+ languages very well | knows Raku very well |
 
+There you have it. If you're neither A nor B - it's probably going to be a
+really boring read. Well, give it a shot anyway, seeing as you're on the page
+already...
 
 * Code
 :PROPERTIES:
@@ -149,13 +248,17 @@ the former meant for scripts, the latter for... well, modules. We'll be creating
 a bunch of modules and one script (in this section, there are some more files in
 the following ones):
 
-- =run.raku= - imports our modules and performs some tests
 - =ShowTable.rakumod= - most of the functionality is here
 - =Utils.rakumod= - a few general-purpose utils that stdlib lacks
 - =Colors.rakumod= - helpers for handling colored text in tables
+- =run.raku= - imports our modules and performs some tests
 
 Let's start with the longest and most heavily commented file first:
 =ShowTable.rakumod=, the heart of the library.
+
+*NOTE:* the code listings below are of two kinds: belonging to the code of the
+actual module or script, and examples for illustration purposes. The code of the
+module is *always displayed with line numbers*, while examples are without them.
 
 ** ShowTable.rakumod
 :PROPERTIES:
@@ -192,8 +295,8 @@ Modules can be written like this:
 but if there's just one module in a file, the =unit= qualifier comes in handy -
 it treats the rest of the file as a module body.
 
-BTW: for some reason "unit" is never highlighted as a keyword on Github[fn:6] and
-even on Raku's own page... Strange.
+You might notice that for some reason =unit= is not highlighted as a keyword on
+Github. There's a sad story behind this[fn:6], so don't ask.
 
 #+begin_src raku +n :tangle ShowTable.rakumod
   use Utils;
@@ -269,10 +372,9 @@ forms a block with the first positional parameter assigned to a "topic
 variable", called =$_=, inside the block (similar to how blocks in Groovy or
 Kotlin use =it= as a default block argument name). 
 
-Another bit of syntax: in a method call, if the object (or "invokant" in
+Another bit of syntax: in a method call, if the object (or "invocant" in
 Raku-speak) is missing, the method is called on the topic variable. Various
 constructs set the topic variable, including =for=, =with=, and =given= keywords.
-
 
 #+begin_src raku +n :tangle ShowTable.rakumod
   subset MaybeColoredStr where Str | Colored;
@@ -286,6 +388,9 @@ works mostly by calling a magic-method called =ACCEPTS= on RHS. Various "things"
 implement that method, including - as you probably realized already - callables,
 where smart-matching simply calls the routine with LHS operand as an argument.
 
+TODO: the "smart-matching" operator also exists in Ruby, Groovy, and Smalltalk.
+There might be implementations for other languages, too.
+
 So what you can put into =where= clause includes everything that works with
 =~~=, which is basically anything. For simple values, smart-matching is
 analogous to structural comparison (written as ===== normally), but for type
@@ -294,6 +399,8 @@ value.
 
 *TL;DR*: =MaybeColoredStr=, when used, will check whether a given value is a
 =Str=, =Colored=, or any of their subclasses.
+
+**** Junctions
 
 The last interesting bit of syntax, and an interesting concepts is "junctions".
 Junctions are basically lazy conditions that aggregate a bunch of condition
@@ -315,6 +422,9 @@ junctions is much nices. Last example on junctions before moving on:
   dd ($anded ∈ 1..10).so;         # again, reduces to a single value
   # Bool::True
 #+end_src
+
+=dd= is a debug function specific to Rakudo, which prints a value and its type
+to stderr (I think?). 
 
 Pay attention to the "is the same as" comments: you'll need them in the next
 fragment!
@@ -339,7 +449,7 @@ There are some advantages to the use of enums... and then there's Raku which
 eliminates almost all of them... 🙂 No exhaustiveness checking, no distinct
 identity for cases, no parametrization, just a little nicer syntax
 for a named subset of literal values. Basically, it's an =enum= you know and
-love from C, not a discriminated union you know and love more for ML.
+love from C, not a discriminated union you know and love *more* from ML.
 
 And BTW, see this?
 
@@ -375,14 +485,12 @@ time.) Most languages took it to heart; some examples:
 
 and so on... yet here Raku makes me code this by hand? Even Scala has at least
 =String.padTo=! Or maybe I'm supposed to install a package just for this? I'm
-still not quite sure what kinds of packages are there. I'll search for one
-later; for now, coding it here seems like a better idea, because it gives me a
-chance to demonstrate some of the Raku's safety features.
+still not quite sure what kinds of packages are there.
 
 #+begin_src raku +n :tangle ShowTable.rakumod
   #| Pads given string with a given character up to a limit. Can pad on both
   #| sides.
-  sub str-justify(
+  our sub str-justify(
       MaybeColoredStr $s,
       Positive $limit,
       JustifyType $type,
@@ -401,11 +509,113 @@ chance to demonstrate some of the Raku's safety features.
   }
 #+end_src
 
-*TODO*: =our= and =is export= explanation
+**** Module exports
 
-*TODO*: first pre- and post-conditions
+First: we're inside a module and we're defining names. By default, all names are
+considered private to the enclosing module (thought they might be visible to whe
+nested modules). That means there's no way to access the names declared that way
+(with explicit or implicit =my=). As a module's author, you have to decide what
+names should be accessible, and _how_.
 
-*TODO*: coercible types
+We've seen it already, there's a =use= statement that allows users to depend on
+the external module. However, what happens when that statement is executed is
+almost entirely up to the module author. Here are the options and what happens
+after =use= depending on your choice:
+
+- use =our= instead of =my= qualifier for a name. This results in the name being
+  accessible via Fully Qualified Name, that is,
+  =ModuleName::name-of-our-symbol=.
+- use =is export= trait on a name. This results in the name being injected
+  directly into the current scope. Crucially, a name with this trait, but
+  without =our= qualifier, *is not* accessible via FQN. You still can refer to
+  the name with a qualified name, but it gets ugly:
+  =ModuleName::EXPORT::ALL::exported-my-name=
+- use =is export(:group1, :group2)= trait on a name. This is quite an original
+  idea: inside a module, there can be any number of inner namespaces. This trait
+  puts the name into one or more of them. The namespaces are created if they
+  don't yet exist. Then, the user can import only names belonging to a
+  particular group, like this: =use ModuleName :group1=.
+- any combination of the above, with expected semantics. 
+
+Here are some examples:
+#+begin_src raku 
+  module ModuleName {
+      our sub f1() { say "Called {&?ROUTINE.raku}" }
+      sub f2() is export { say "Called {&?ROUTINE.raku}" }
+      sub f3() is export(:group1) { say "Called {&?ROUTINE.raku}" }
+      our sub f4() is export { say "Called {&?ROUTINE.raku}" }
+      sub f5() is export(:ALL, :group2) { say "Called {&?ROUTINE.raku}" }
+  }
+#+end_src
+
+**** Routine arguments
+
+In Raku, arguments to routines can be constrained with a type, which can be
+either a class, a role, or a subset, and also with =where= clauses (same meaning
+as with subsets). NOTE: I'm not sure about scoping of identifiers in the =where=
+clauses. In =sub f($a, $b, $c where { ... }, $d)=, in the =where= block, is =$d=
+visible? Are =$a= and =$b= visible? Need to check.
+
+Arguments can have default values.
+
+**** First routine contracts
+
+Routines can have contracts, too. First, the types and where clauses are routine
+pre-conditions. These are checked before entering the routine. They mostly deal
+with values of single arguments.
+
+Then, there are explicit pre-conditions, in the form of =PRE= blocks. They
+execute after type checks of arguments, but before anything else. They mostly
+deal with relations between arguments.
+
+Then, there are post-conditions, in the form of =POST= blocks. They execute
+after the return value is known, but before final type check. =POST= blocks set
+the return value as a topic variable, and they have access to all the function
+arguments, too. 
+
+NOTE: currently, =POST= blocks are executed even if the dispatch to the function
+failed, or in other words: one or more arguments didn't meet the required
+constrains. The construct =$_✔{ ... }= uses a custom operator, =✔=, to only call
+the post-condition block when the returned value is defined - in the case of
+dispatch failure it won't be. See more in [[Utils.rakumod]].
+
+Finally, there's a type check provided by the function signature with either
+=-->= arrow inside the argument list, or by adding one of the traits after the
+closing paren: =returns(SomeType)= or =of SomeType= (I think, TODO)
+
+**** Coercible types
+
+Variables and arguments can be told to accept types other then the one declared
+and attempt to automatically convert the incoming type to the one declared. The
+coercion happens by calling a method on the incoming value that has the same
+name as the target type. This:
+
+#+begin_src raku
+  my Str(Any) $a = 2;
+#+end_src
+
+Tells variable =$a= to accept any kind of value that has =.Str= method, which is
+then called before performing the assignment.
+
+The same coercion can happen with the return type of a function, where the
+return value is coerced to the required type before being returned.
+
+**** Operators used
+
+Raku allows defining custom operators, and also includes a multitude of
+operators built-in. They are implemented as variants of one of the few
+multi-methods. 
+
+- =~= is string concatenation operator: ="a" ~ "b" eq "ab"= (BTW, =eq= is string
+  equality)
+- =x= is string repeat operator: ="a" x 5 eq "aaaaa"=
+- =*= has a few meanings, but here it's used as an instance of =Whatever= type,
+  which will match anything.
+
+=given $obj { when 1 {}; when 2 {}; default {} }= is Raku version of
+pattern-matching, but here it works like a simple =switch= statement from C (it
+can do more, though).
+
 
 # BTW: I think the module systems gives WAY too much to the module author. It's
 # a module's user that should decide which identifiers they wish to have
@@ -556,7 +766,6 @@ also the =reduce= (often called =fold= or =fold-left=) function and
 but with shorthand syntax: =[Z] list-of-lists=. It's a simple way of rotating
 the table, from list of rows to a list of columns and vice versa.
 
-
 *** Helpers for interpreting column widths argument
 :PROPERTIES:
 :CUSTOM_ID: code__showtable.rakumod__helpers-for-interpreting-column-widths-argument
@@ -572,12 +781,12 @@ TODO: first multi-method
   multi get-col-widths(@cols where { .all ~~ StrList  } --> IntList) {
       POST $_✔{ .elems == @cols.elems };
       my @widths[@cols.elems];
-      @widths[$_] = @cols[$_]».chars.max for @widths.keys;
+      @widths[$_] = (@cols[$_]».chars.max or 1) for @widths.keys;
       @widths
   }
 #+end_src
 
-*** Converting lists to tables - the user-facing interface of the module
+*** Converting lists to tables - main API
 :PROPERTIES:
 :CUSTOM_ID: code__showtable.rakumod__converting-lists-to-tables---the-user-facing-interface-of-the-module
 :END:
@@ -607,7 +816,7 @@ TODO: first multi-method
 :CUSTOM_ID: code__utils.rakumod
 :END:
 
-#+begin_src raku :tangle Utils.rakumod
+#+begin_src raku -n :tangle Utils.rakumod
   use v6.d;
 
   unit module Utils;
@@ -684,10 +893,11 @@ TODO: first multi-method
 :CUSTOM_ID: code__colors.rakumod
 :END:
 
-#+begin_src raku :tangle Colors.rakumod
+#+begin_src raku -n :tangle Colors.rakumod
   use v6.d;
 
-  use MONKEY; # 🙈
+  use MONKEY; # 🙈 - because augmenting existing classes is very bad for
+              # performance; which is strange, b/c Smalltalk - see note
 
   unit module Colors;
 
@@ -711,7 +921,7 @@ TODO: first multi-method
       method no-color() {
           $!string
       }
-    
+
       method Str() { $!string.&colored($!style) }
   }
 
@@ -731,8 +941,7 @@ TODO: first multi-method
 :PROPERTIES:
 :CUSTOM_ID: examples-of-use
 :END:
-
-** Meta.rakumod
+** Meta.rakumod - introspect classes and object
 :PROPERTIES:
 :CUSTOM_ID: examples-of-use__meta.rakumod
 :END:
@@ -756,6 +965,8 @@ TODO: first multi-method
 
   # change my -> our to make all the functions available at once when testing
   module Priv {
+      use Utils;
+
       sub all-caps(Str $s --> Bool()) is export {
           $s.match: / ^(<upper>|<[-&$@_%!]>)+$ /;
       }
@@ -848,12 +1059,12 @@ TODO: first multi-method
 
 #+end_src
 
-** pkgs.raku
+** pkgs.raku - show a list of available packages
 :PROPERTIES:
 :CUSTOM_ID: examples-of-use__pkgs.raku
 :END:
 
-#+begin_src raku :tangle pkgs.raku
+#+begin_src raku -n :tangle pkgs.raku
   use v6.d;
 
   use JSON::Fast;
@@ -868,7 +1079,6 @@ TODO: first multi-method
           (.year, "-", .month.fmt('%02d'), "-", .day.fmt('%02d') ).join
       }
   }
-
 
   show-section 1, {
       my constant $fields := <name updated eco likes desc>;
@@ -889,15 +1099,14 @@ TODO: first multi-method
       dd @table;
       show-table(@table, :col-widths($widths));
   }
-
 #+end_src
 
 * Other scripts
 :PROPERTIES:
 :CUSTOM_ID: other-scripts
 :END:
-
-Re-run a command if one of the watched files changes.
+** watch.raku - watch files for changes
+Re-runs a command if one of the watched files changes.
 
 #+begin_src raku -n
   use v6.d;
@@ -1009,6 +1218,16 @@ its own.
 
 * Footnotes
 
+[fn:14] link
+ 
+[fn:13] link 
+
+[fn:12] See [[https://raku.land/github:thundergnat/Terminal::Boxer][Terminal::Boxer]] or [[https://raku.land/github:ab5tract/Terminal::Print][Terminal::Print]] or [[https://raku.land/?q=table][any of the other packages]].
+
+[fn:11] As implemented in Racket, which is a bit different than the original
+Eiffel implementation. This is why I write about "contracts-based" programming
+instead of the more specific [[https://en.wikipedia.org/wiki/Design_by_contract][Design by Contract]] term.
+
 [fn:1] Though methodology there is a bit questionable, at best. Plus, it's from
 2013, and many languages didn't make it onto a list, and there are multiple
 languages that faded into (even more) obscurity since then.
@@ -1026,7 +1245,8 @@ deprecated ones based on previous name of the language, eg. =.p6=.
 [fn:5] Annual festival of light in Hinduism, happening for a few days in October
 and November... apparently.
 
-[fn:6] TODO: link
+[fn:6] Apparently, a person responsible for writing syntax highlighting died
+before being able to finish.
 
 [fn:7] [[https://docs.raku.org/routine/~~]]
 
@@ -1036,7 +1256,9 @@ and November... apparently.
 https://www.davidhaney.io/npm-left-pad-have-we-forgotten-how-to-program/
 
 [fn:10] In Racket: =(apply map list '((a b) (c d))) ;=> '((a c) (b d))=
+
 # Local Variables:                                                 #
+# eval: (add-hook 'after-save-hook 'my-upload-raku-writeup nil t)  #
 # eval: (add-hook 'after-save-hook 'org-html-export-to-html nil t) #
 # eval: (add-hook 'after-save-hook 'org-babel-tangle nil t)        #
 # End:                                                             #

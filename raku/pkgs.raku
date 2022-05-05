@@ -13,7 +13,6 @@ sub dt(Str $s --> Str) {
     }
 }
 
-
 show-section 1, {
     my constant $fields := <name updated eco likes desc>;
     my constant $widths := [25,  10,     5,  3,    60];
