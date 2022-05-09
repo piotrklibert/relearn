@@ -102,7 +102,6 @@ our sub cls(Mu \obj) is export {
 
 our sub ns($pkg) is export {
     # EXPORT::ALL::.keys
-    my $fuck = 3;
     say $pkg.^name;
     # say ::("CALLER")::EXPORT::ALL::.keys;
     # $package-names.map({ "- " ~ (try { $_ ~ " " ~ ::("$_")::.keys.raku } || $_ )})>>.say;

@@ -186,7 +186,7 @@ things that I did not yet have time to investigate:
 - what is written in The Official Raku Test Suite (ROAST)
 - what is happening in Raku's blog-o-sphere, including archives & current threads
 - who the main contributors are, what vision do they try to follow
-- how good is Comma IDE, a Raku-dedicated environment (the one and only)
+- how good is [[https://commaide.com/][Comma IDE]], a Raku-dedicated environment (the one and only)
 - how various constructs are implemented, including junctions and subsets
 - details of the meta-model - metaclasses, method objects, traits (but see note)
 - what is the performance in various conditions - I only have a bit of anecdata
@@ -197,12 +197,17 @@ things that I did not yet have time to investigate:
 - how to make the colored strings work in a more idiomatic way (without =augment=)
   - it was suggested to me that [[https://docs.raku.org/type/Signature#index-entry-Coercion_type][coercion types]] described in more detail in these
     [[https://vrurg.github.io/2020/11/16/Report-On-New-Coercions][two]] [[https://vrurg.github.io/2020/11/30/Report-On-New-Coercions-Part-2][articles]] could be used in a better way.
-- what's up with =ForeignCode= objects
+- what's up with =ForeignCode= objects in meta-classes of meta-classes
 
-#+begin_src raku
-  1.HOW.HOW.^methods.map(-> $a { say "{$a.key}\n{$a.value}" }, :kv)[^5];
-  1.HOW.HOW.^methods.sort(*.key)[^10].map(*.say);
-#+end_src
+# TODO: make into an example
+# #+begin_src raku
+#   1.HOW.HOW.^methods.map(-> $a { say "{$a.key}\n{$a.value}" }, :kv)[^5];
+#   1.HOW.HOW.^methods.sort(*.key)[^10].map(*.say);
+#   # > 1.HOW
+#   # Perl6::Metamodel::ClassHOW.new
+#   # > 1.HOW.HOW
+#   # (low-level object `NQPClassHOW`)
+# #+end_src
 
 - and *many*, many, many, maaaany more
 
@@ -210,10 +215,6 @@ Moreover, I didn't track the history of Raku, nor its prehistory (ie. Perl 5).
 Everything I write is based on roughly _4 weeks of afternoon sessions_ with
 official docs and Google, as they were in _April - May 2022_.
 
-> 1.HOW
-Perl6::Metamodel::ClassHOW.new
-> 1.HOW.HOW
-(low-level object `NQPClassHOW`)
 
 ** The example - aligning strings in columns
 :PROPERTIES:
@@ -316,7 +317,7 @@ it is written in_.
 :CUSTOM_ID: code__showtable.rakumod__module-preamble
 :END:
 
-#+begin_src raku -n :tangle ShowTable.rakumod
+#+begin_src raku -n :tangle ShowTable.rakumod :eval no
   use v6.d;
 #+end_src
 
@@ -327,7 +328,7 @@ at first. So, instead the major releases are identified by the letter after dot.
 (Version "d", which apparently has code name "Diwali"[fn:9] [fn:19], is current, and
 replaced "c" for "Christmas" in 2018)
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no
   unit module ShowTable;
 #+end_src
 
@@ -345,7 +346,7 @@ it treats the rest of the file as a module body.
 You might notice that for some reason =unit= is not highlighted as a keyword on
 Github. There's a sad story behind this[fn:10], so don't ask.
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no
   use Utils;
   use Colors :types;  
 #+end_src
@@ -363,42 +364,41 @@ exports]], below.
 :END:
 
 If you know Racket, then subsets are [[https://docs.racket-lang.org/reference/contracts.html][simply flat contracts]].
+# not like i had these all from the beginning...
 
 Otherwise, you can think of them like this: a =subset= is a *named* set of
 *assertions* about the shape or structure some value can take. Those assertions
 can be *attached to variables, parameters, and functions*. Syntactically,
 =subsets= can be used everywhere a simple type can, but checking if a value
-fullfils the assertions is done at run-time, so the range of what you can check
-for is much wider than with static types (in non-dependently-typed language,
+fulfills the assertions is done at run-time, so the range of what you can check
+for is much broader than with static types (in non-dependently-typed language,
 anyway).
 
 Another way of thinking about it is that subsets are syntactic sugar for the
 more commonly used pre-conditions. If a pre-condition pops up in multiple
 places, as long as it concerns a single variable or parameter, it can be
 extracted into a named =subset=. This might not make much sense now, but after
-you see a few pre-conditions at work, it should become clearer.
-
-# not like i had these all from the beginning...
+seeing a few pre-conditions at work, it should become more apparent.
 
 *One note:* these contracts are traditionally stored either at the top or at the
 bottom of a file, here - at the top. They were not written all at once, and they
 were closer to a place of use for most of the development time. In the first
-version of the code I used =Str= and =Int= everywhere, like a sane person would.
-I then started refining the contracts, trying to make them as precise as
+version of the code, I used =Str= and =Int= everywhere, as any sane person
+would. I then refined the contracts, trying to make them as precise as
 practically relevant, over a few rounds of refactoring.
 
-*Another note*: All of the constrained subtypes below are checked dynamically,
-at run-time. I honestly have no idea how expensive these are. I hope they get
-inlined properly, at least. 
+*Another note*: All of the constrained subtypes below are checked dynamically at
+run-time. I honestly have no idea how expensive these are. I hope they get
+inlined properly, at least.
 
-In any case, run-time impact of contracts like this is always an issue,
-traditionally solved by disabling checking of assertions in release mode. I'm
-not sure if it's possible to easily do this in Raku: in the worst case I'd have
-to edit the definitions below manually to comment out all the =where= clauses,
-effectively transforming =subset= into a C-like =typedef=.
+The run-time impact of contracts like this is always an issue, traditionally
+solved by disabling the checking of assertions in release mode. Unfortunately,
+I'm not sure if it's possible to do this in Raku easily. In the worst case, I'd
+have to edit the definitions below manually to comment out all the =where=
+clauses, effectively transforming =subsets= into C-like =typedefs=.
 
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no :eval no
   subset Positive of Int where * > 0;            # same as { $_ > 0 }
   subset Character of Str where { .chars == 1 }; # same as { $_.chars == 1 }
                                                  # or as *.chars == 1
@@ -423,7 +423,7 @@ Another bit of syntax: in a method call, if the object (or "invocant" in
 Raku-speak) is missing, the method is called on the topic variable. Various
 constructs set the topic variable, including =for=, =with=, and =given= keywords.
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no :eval no
   subset MaybeColoredStr where Str | Colored;
   subset ColumnSpec where Iterable | Int | Nil;
 #+end_src
@@ -437,8 +437,8 @@ where smart-matching simply calls the routine with LHS operand as an argument.
 
 So what you can put into =where= clause includes everything that works with
 =~~=, which is basically anything. For simple values, smart-matching is
-analogous to structural comparison (written as ===== normally), but for type
-and role (interfaces, mixins) they perform an =.isa= or =.does= check on the LHS
+analogous to structural comparison (written as ~===~ normally), but for type and
+role (interfaces, mixins) they perform an =.isa= or =.does= check on the LHS
 value.
 
 *TL;DR*: =MaybeColoredStr=, when used, will check whether a given value is a
@@ -459,21 +459,33 @@ it returning true when used on objects of a given type or any of its subtypes.
 Note, however, that Ruby uses single-dispatch, so the order of arguments is
 reversed compared to Raku; the code in Ruby:
 
-#+begin_src ruby
-  /some_regexp/ === "some string" # false
-  -> x { x.integer? } === 3       # true
-  (1..10) === 3                   # true
-  Array === [3]                   # true
+#+begin_src ruby :results output :exports both
+  puts Array === [3]
+  puts (1..10) === 3
+  puts -> x { x.integer? } === 3
+  puts /some.*/ === "some string"
 #+end_src 
+
+#+RESULTS:
+: true
+: true
+: true
+: true
 
 in Raku is written like this:
 
-#+begin_src raku
-  "some string" ~~ /some.*/       # ｢some string｣
-  3 ~~ -> $x { $x.isa(Int) }      # True
-  3 ~~ (1..10)                    # True
-  [3] ~~ Array                    # True
+#+begin_src raku :exports both
+  say 3 ~~ -> $x { $x.isa(Int) };
+  say 3 ~~ (1..10);
+  say [3] ~~ Array;
+  say "some string" ~~ /some.*/;
 #+end_src
+
+#+RESULTS:
+: True
+: True
+: True
+: ｢some string｣
 
 Also notice the regexp example: in Raku =~~= is more general and can return
 results of types other than =Bool=, while the Ruby version is striclty a
@@ -494,28 +506,33 @@ subjects, and are responsible for applying a check to all junctions members and
 combining results. You could do the same with collections, but the syntax of
 junctions is much nices. Last example on junctions before moving on:
 
-#+begin_src raku
-  dd my $ored = (3 | 4 | 5);      # is the same as: (3, 4, 5).any
-  # Junction $ored = any(3, 4, 5)
-  dd (4 == $ored);
-  # any(Bool::False, Bool::True, Bool::False)
-  dd (4 == $ored).so;             # reduces to single value in boolen context
-  # Bool::True
-  dd my $anded = (3 & 4 & 5);     # is the same as: (3, 4, 5).all
-  # Junction $anded = all(3, 4, 5)
-  dd $anded ∈ 1..10;              # ∈ mean "is element of"
-  # all(True, True, True)
-  dd ($anded ∈ 1..10).so;         # again, reduces to a single value
-  # Bool::True
+#+begin_src raku :results output :exports both
+  say (my $ored = (3 | 4 | 5));      # is the same as: (3, 4, 5).any
+  say (4 == $ored);
+  say (4 == $ored).so;               # reduces to single value in boolen context
+  say (my $anded = (3 & 4 & 5));     # is the same as: (3, 4, 5).all
+  say ($anded ∈ 1..10);              # ∈ mean "is element of"
+  say ($anded ∈ 1..10).so;           # again, reduces to a single value
 #+end_src
 
-=dd= is a debug function specific to Rakudo, which prints a value and its type
-to stderr (I think?). 
+#+RESULTS:
+: any(3, 4, 5)
+: any(False, True, False)
+: True
+: all(3, 4, 5)
+: all(True, True, True)
+: True
+
+Note: there's a Rakudo-specific function meant for debugging - called =dd= -
+which prints a value and its type to stderr. Unfortunately, I can't use it in
+examples because of this: my setup executes blocks and captures their outputs
+automatically, but only uses =stdout= for this, not =stderr=... In any case, you
+might want to use =dd= instead of =say= in the REPL or when pritntf-debugging.
 
 Pay attention to the "is the same as" comments: you'll need them in the next
 fragment!
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no
   subset StrList of Iterable where { .cache.all ~~ MaybeColoredStr };
   subset IntList of Iterable where { .cache.all ~~ Int };
   subset StrTable of Iterable where { .cache.all ~~ StrList };
@@ -527,7 +544,7 @@ On the other hand, not having to worry about the shape of the data *at all*
 within this module is too convenient to give up, and my use case does not
 involve large input sizes.
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no
   enum JustifyType is export <None Left Right Center>;
 #+end_src
 
@@ -573,7 +590,7 @@ and so on... yet here Raku makes me code this by hand? Even Scala has at least
 =String.padTo=! Or maybe I'm supposed to install a package just for this? I'm
 still not quite sure what kinds of packages are there.
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no
   #| Pads given string with a given character up to a limit. Can pad on both
   #| sides.
   our sub str-justify(
@@ -628,15 +645,42 @@ after =use= depending on your choice:
 
 Here are some examples:
 
-#+begin_src raku 
+#+begin_src raku :results output :exports both
   module ModuleName {
-      our sub f1() { say "Called {&?ROUTINE.raku}" }
-      sub f2() is export { say "Called {&?ROUTINE.raku}" }
-      sub f3() is export(:group1) { say "Called {&?ROUTINE.raku}" }
-      our sub f4() is export { say "Called {&?ROUTINE.raku}" }
-      sub f5() is export(:ALL, :group2) { say "Called {&?ROUTINE.raku}" }
+      our sub f1()                              { "Called {&?ROUTINE.raku}" }
+      my  sub f2() is export                    { "Called {&?ROUTINE.raku}" }
+      my  sub f3() is export(:group1)           { "Called {&?ROUTINE.raku}" }
+      our sub f4() is export                    { "Called {&?ROUTINE.raku}" }
+      my  sub f5() is export(:DEFAULT, :group2) { "Called {&?ROUTINE.raku}" }
+  }
+  {
+      say "Simple import:";
+      import ModuleName;
+      say ModuleName::f1(); 
+      # say ModuleName::f2(); -- Error: Could not find symbol '&f2' in 'ModuleName'
+      say f2();
+      # say f3();             -- Error: Undeclared routine
+      say f4();
+      say f5();
+  }
+  {
+      say "Group import:";
+      import ModuleName :group1;
+      say f3();
+      # say f4(); -- Error: Undeclared routine
+      say ModuleName::f1();
   }
 #+end_src
+
+#+RESULTS:
+: Simple import:
+: Called sub f1 { #`(Sub|6135037578944) ... }
+: Called sub f2 { #`(Sub|6135025527520) ... }
+: Called sub f4 { #`(Sub|6135037579064) ... }
+: Called sub f5 { #`(Sub|6135037579184) ... }
+: Group import:
+: Called sub f3 { #`(Sub|6135025527400) ... }
+: Called sub f1 { #`(Sub|6135037578944) ... }
 
 **** Routine arguments
 :PROPERTIES:
@@ -723,7 +767,7 @@ can do more, though).
 # a module's user that should decide which identifiers they wish to have
 # injected into often top-level module scope.
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no
   sub list-justify(
       Iterable $row,
       Positive $cols,
@@ -781,7 +825,7 @@ to do better; optimizations to exploit it are still to come.
 :CUSTOM_ID: code__showtable.rakumod__formatting-a-single-cell
 :END:
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no
   #| Make sure the returned string has exactly $limit characters, clipping or
   #| padding as needed.
   our sub format-cell(
@@ -829,7 +873,7 @@ because it lets us rotate the table with =[Z]= meta-operator (see below) without
 worrying about losing elements.
 
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no
   #| Create a multi-line string with values from $table aligned into columns.
   #| Passed $table cannot be empty.
   our sub format-table(
@@ -875,7 +919,7 @@ the table, from list of rows to a list of columns and vice versa.
 
 TODO: first multi-method
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no
   multi get-col-widths(Int $width, @cols --> IntList) { $width xx @cols.elems }
   multi get-col-widths(Iterable $widths, @cols --> IntList) { $widths }
   multi get-col-widths($ where ?*.not, @cols --> IntList) { samewith(@cols) }
@@ -893,7 +937,7 @@ TODO: first multi-method
 :CUSTOM_ID: code__showtable.rakumod__converting-lists-to-tables---main-api
 :END:
 
-#+begin_src raku +n :tangle ShowTable.rakumod
+#+begin_src raku +n :tangle ShowTable.rakumod :eval no
   use Terminal::Width; # TODO: be smarter about cols number/width if not specified
 
   our sub to-table(StrList $seq, Int :$cols = 5 --> StrTable) is export {
@@ -918,7 +962,7 @@ TODO: first multi-method
 :CUSTOM_ID: code__utils.rakumod
 :END:
 
-#+begin_src raku -n :tangle Utils.rakumod
+#+begin_src raku -n :tangle Utils.rakumod :eval no
   use v6.d;
 
   unit module Utils;
@@ -995,7 +1039,7 @@ TODO: first multi-method
 :CUSTOM_ID: code__colors.rakumod
 :END:
 
-#+begin_src raku -n :tangle Colors.rakumod
+#+begin_src raku -n :tangle Colors.rakumod :eval no
   use v6.d;
 
   use MONKEY; # 🙈 - because augmenting existing classes is very bad for
@@ -1048,7 +1092,7 @@ TODO: first multi-method
 :CUSTOM_ID: examples-of-use__meta.rakumod---introspect-classes-and-object
 :END:
 
-#+begin_src raku -n :tangle Meta.rakumod
+#+begin_src raku -n :tangle Meta.rakumod :eval no
   use v6.d;
 
   unit module Meta;
@@ -1153,7 +1197,6 @@ TODO: first multi-method
 
   our sub ns($pkg) is export {
       # EXPORT::ALL::.keys
-      my $fuck = 3;
       say $pkg.^name;
       # say ::("CALLER")::EXPORT::ALL::.keys;
       # $package-names.map({ "- " ~ (try { $_ ~ " " ~ ::("$_")::.keys.raku } || $_ )})>>.say;
@@ -1166,7 +1209,7 @@ TODO: first multi-method
 :CUSTOM_ID: examples-of-use__pkgs.raku---show-a-list-of-available-packages
 :END:
 
-#+begin_src raku -n :tangle pkgs.raku
+#+begin_src raku -n :tangle pkgs.raku :eval no
   use v6.d;
 
   use JSON::Fast;
@@ -1213,7 +1256,7 @@ TODO: first multi-method
 :END:
 Re-runs a command if one of the watched files changes.
 
-#+begin_src raku -n
+#+begin_src raku -n :eval no
   use v6.d;
 
   use Utils;
@@ -1281,7 +1324,7 @@ So it started from the REPL. You see, you can check what methods has any given
 object if you invoke a metaclass method called ~methods~. This is the same
 approach as in Smalltalk/X:
 
-#+begin_src smalltalk
+#+begin_src smalltalk :eval no
   2 class getMethodDictionary keys.
   "OrderedCollection(#'*' #'+' #'-' #'/' #'//' #'\\' #abs #negated #quo: #bitAnd: #bitClear: #bitCount #bitInvert ....etc)"
 #+end_src
@@ -1332,7 +1375,197 @@ pandoc -f markdown -t org -o fname.org fname.md
 sprawdzic, czy moze czytac z stdin i dumpowac na stdout
 owinac w komende emacsowa
 
+** some code
 
+#+begin_src raku :eval query :results output :exports both
+  my @types = 
+      Q{AST},
+      Q{Allomorph},
+      Q{Any},
+      Q{Array},
+      Q{Associative},
+      Q{Attribute},
+      Q{Awaitable},
+      Q{Awaiter},
+      Q{Backtrace},
+      Q{Bag},
+      Q{BagHash},
+      Q{Baggy},
+      Q{BigEndian},
+      Q{Blob},
+      Q{Block},
+      Q{Bool},
+      Q{Broken},
+      Q{Buf},
+      Q{CX},
+      Q{CallFrame},
+      Q{Callable},
+      Q{Cancellation},
+      Q{Capture},
+      Q{Channel},
+      Q{Code},
+      Q{Collation},
+      Q{CompUnit},
+      Q{Compiler},
+      Q{Complex},
+      Q{ComplexStr},
+      Q{ContainerDescriptor},
+      Q{Cool},
+      Q{CurrentThreadScheduler},
+      Q{Cursor},
+      Q{Date},
+      Q{DateTime},
+      Q{Dateish},
+      Q{Deprecation},
+      Q{Distribution},
+      Q{Distro},
+      Q{Duration},
+      Q{EXPORTHOW},
+      Q{Empty},
+      Q{Encoding},
+      Q{Endian},
+      Q{Enumeration},
+      Q{Exception},
+      Q{Exceptions},
+      Q{Failure},
+      Q{False},
+      Q{FatRat},
+      Q{FileChangeEvent},
+      Q{FileChanged},
+      Q{FileRenamed},
+      Q{ForeignCode},
+      Q{Grammar},
+      Q{HardRoutine},
+      Q{Hash},
+      Q{Hyper},
+      Q{HyperConfiguration},
+      Q{HyperSeq},
+      Q{HyperWhatever},
+      Q{IO},
+      Q{Inf},
+      Q{Instant},
+      Q{Int},
+      Q{IntAttrRef},
+      Q{IntLexRef},
+      Q{IntPosRef},
+      Q{IntStr},
+      Q{Iterable},
+      Q{IterationBuffer},
+      Q{Iterator},
+      Q{JSONException},
+      Q{Junction},
+      Q{Kept},
+      Q{Kernel},
+      Q{Label},
+      Q{Less},
+      Q{List},
+      Q{LittleEndian},
+      Q{Lock},
+      Q{Macro},
+      Q{Map},
+      Q{Match},
+      Q{Metamodel},
+      Q{Method},
+      Q{MethodDispatcher},
+      Q{Mix},
+      Q{MixHash},
+      Q{Mixy},
+      Q{More},
+      Q{Mu},
+      Q{MultiDispatcher},
+      Q{NFC},
+      Q{NFD},
+      Q{NFKC},
+      Q{NFKD},
+      Q{NQPMatchRole},
+      Q{NQPdidMATCH},
+      Q{NaN},
+      Q{NativeEndian},
+      Q{Nil},
+      Q{Num},
+      Q{NumAttrRef},
+      Q{NumLexRef},
+      Q{NumPosRef},
+      Q{NumStr},
+      Q{Numeric},
+      Q{NumericEnumeration},
+      Q{NumericStringyEnumeration},
+      Q{ObjAt},
+      Q{Order},
+      Q{PF_INET},
+      Q{PF_INET6},
+      Q{PF_LOCAL},
+      Q{PF_MAX},
+      Q{PF_UNIX},
+      Q{PF_UNSPEC},
+      Q{PROCESS},
+      Q{PROTO_TCP},
+      Q{PROTO_UDP},
+      Q{Pair},
+      Q{ParallelSequence},
+      Q{Parameter},
+      Q{Perl},
+      Q{PhasersList},
+      Q{Planned},
+      Q{Pod},
+      Q{Positional},
+      Q{PositionalBindFailover},
+      Q{PredictiveIterator},
+      Q{Proc},
+      Q{Promise},
+      Q{PromiseStatus},
+      Q{ProtocolFamily},
+      Q{ProtocolType},
+      Q{Proxy},
+      Q{PseudoStash},
+      Q{QuantHash},
+      Q{REPL},
+      Q{RaceSeq},
+      Q{Raku},
+      Q{Rakudo},
+      Q{Range},
+      Q{Rat},
+      Q{RatStr},
+      Q{Rational},
+      Q{Real},
+      Q{Regex},
+      Q{Routine};
+
+  for @types.map({ ::($_) }) -> Mu $_ is raw {
+      next unless .HOW ~~ Metamodel::ClassHOW;
+      my $does-iterable = $_ ~~ Iterable ?? 'does Iterable' !! "";
+          my $sports-iterator = .^methods(:local)».name.any eq 'iterator' ?? 'sports iterator' !! "";
+          my $and = $does-iterable & $sports-iterator ?? ' and ' !! '';
+          next unless $sports-iterator | $does-iterable;
+
+          say .^name, ' ', $does-iterable, $and, $sports-iterator;
+      }
+#+end_src
+
+#+RESULTS:
+#+BEGIN_EXAMPLE
+  Any sports iterator
+  Array does Iterable and sports iterator
+  Bag sports iterator
+  BagHash sports iterator
+  Channel sports iterator
+  Failure sports iterator
+  Hash does Iterable
+  HyperSeq does Iterable and sports iterator
+  IterationBuffer sports iterator
+  Junction sports iterator
+  List does Iterable and sports iterator
+  Map does Iterable and sports iterator
+  Mix sports iterator
+  MixHash sports iterator
+  Mu sports iterator
+  Nil sports iterator
+  Pair sports iterator
+  PseudoStash does Iterable
+  RaceSeq does Iterable and sports iterator
+  Range does Iterable and sports iterator
+  Routine sports iterator
+#+END_EXAMPLE
 
 * Footnotes
 :PROPERTIES:
